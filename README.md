@@ -1,4 +1,5 @@
-Extremely new currently untested 
+For the record I have no clue what i'm doing!
+Extremely new and probably broken lol
 
 ### Multi-Agent Software Generation System
 
