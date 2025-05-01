@@ -2,12 +2,14 @@
 
 from agents.agent_base import BaseAgent
 import os
+import openai
 
 class ReviewerAgent(BaseAgent):
     def __init__(self, config, memory):
         super().__init__(config, memory)
         self.role = "QA Reviewer"
         self.description = "Performs code review using GPT-4"
+        self.client = openai.OpenAI(api_key=config.GPT4_API_KEY)
 
     def review_code(self, file_paths: list) -> dict:
         print(f"\n🔍 [{self.role}] Performing GPT-4 code review...")
@@ -30,26 +32,25 @@ class ReviewerAgent(BaseAgent):
         return reviews
 
     def _review_with_gpt4(self, file_path: str, code: str) -> str:
-        prompt = f"""
-        You are a senior software reviewer. Please analyze the following code for:
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a meticulous software reviewer."},
+                    {"role": "user", "content": f"""Please review the following code for:
 
-        - Bugs or edge cases
-        - Code quality and readability
-        - Security concerns
-        - Recommendations for improvement
+- Bugs or edge cases
+- Code quality and readability
+- Security concerns
+- Recommendations for improvement
 
-        File: {file_path}
+File: {file_path}
 
-        ```python
-        {code}
-        ```
-
-        Return your analysis in a bullet-point summary.
-        """
-        return self.call_llm(prompt, model="gpt4", system="You are a meticulous software reviewer.")
-
-    def qa_passed(self, reviews: dict) -> bool:
-        for feedback in reviews.values():
-            if "❌" in feedback or "fix" in feedback.lower():
-                return False
-        return True
+```python
+{code}
+```"""},
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"❌ GPT-4 Review Error: {str(e)}"

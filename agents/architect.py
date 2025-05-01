@@ -12,7 +12,7 @@ class ArchitectAgent(BaseAgent):
         self.description = "Decomposes user prompt into a software plan"
 
     def generate_plan(self, user_prompt: str) -> dict:
-        print(f"\n🧠 [{self.role}] Planning based on user prompt...")
+        print(f"\n🧠 [{self.role}] Planning using GPT-4o...")
 
         planning_prompt = f"""
         You are a senior software architect. A user has asked you to build the following:
@@ -24,49 +24,65 @@ class ArchitectAgent(BaseAgent):
         - Define core files/modules and what they will do
         - Suggest a folder structure
         - Include anything the developer needs to know before coding
-        Return in JSON format with keys: components, tech_stack, files, notes.
 
-        Important:
-        - 'files' should be a list of objects, each with 'path' and 'description'.
-        - Do not return the 'files' section as a dictionary.
+        Return ONLY valid JSON with the following keys:
+        - components
+        - tech_stack
+        - files (list of objects with 'path' and 'description')
+        - notes
         """
 
-        try:
-            plan_response = self.call_llm(
-                prompt=planning_prompt,
-                model="ollama",
-                system="You are a software architect."
-            )
-            print("📝 Raw plan response:\n", plan_response)
+        plan_response = self.call_llm(
+            prompt=planning_prompt,
+            model="gpt-4o",
+            system="You are a software architect."
+        )
 
+        print("📝 Raw plan response:\n", plan_response)
+
+        try:
             plan = self.safe_json_parse(plan_response)
             plan = self.normalize_plan(plan)
-        except Exception as ollama_fail:
-            print(f"⚠️ Ollama plan failed: {ollama_fail}")
-            if self.config.USE_GPT4_FOR_QA:
-                print("⚡ Falling back to GPT-4 for architecture...")
-                plan_response = self.call_llm(
-                    prompt=planning_prompt,
-                    model="gpt4",
-                    system="You are a software architect."
-                )
-                print("📝 Raw GPT-4 plan:\n", plan_response)
-                plan = self.safe_json_parse(plan_response)
-                plan = self.normalize_plan(plan)
-            else:
-                print("❌ Could not generate plan. No fallback model enabled.")
-                return {}
+        except Exception as parse_fail:
+            print(f"❌ Failed to parse architecture plan: {parse_fail}")
+            return {}
+
+        if not plan.get("files"):
+            print("⚠️ Plan has no 'files'. Injecting fallback starter project...")
+            plan["files"] = [
+                {
+                    "path": "frontend/upload_form.html",
+                    "description": "Basic HTML form for PDF upload and detail selection"
+                },
+                {
+                    "path": "backend/api.py",
+                    "description": "Flask backend to handle PDF upload and send to Ollama"
+                },
+                {
+                    "path": "backend/pdf_tools.py",
+                    "description": "Handles PDF text extraction and formatting"
+                },
+                {
+                    "path": "templates/report.html",
+                    "description": "HTML template for displaying AI-enhanced PDF report"
+                }
+            ]
 
         self.memory.save("project_plan", plan)
         print("✅ Plan successfully created and saved.")
         return plan
 
     def safe_json_parse(self, raw_text: str) -> dict:
+        # Bail early if model returned an error message
+        if "error" in raw_text.lower() or "openai error" in raw_text.lower():
+            raise ValueError("LLM call failed; no usable JSON to parse.")
+
         try:
             return json.loads(raw_text)
         except json.JSONDecodeError:
             pass
 
+        # Try to extract the first valid JSON object from raw text
         json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
         if not json_match:
             raise ValueError("No JSON found in response")
@@ -77,9 +93,6 @@ class ArchitectAgent(BaseAgent):
             raise ValueError(f"Malformed JSON could not be recovered: {e}")
 
     def normalize_plan(self, plan: dict) -> dict:
-        """
-        Convert malformed plan['files'] formats into a list of { path, description } objects.
-        """
         files = plan.get("files")
         if isinstance(files, dict):
             plan["files"] = []
@@ -90,15 +103,12 @@ class ArchitectAgent(BaseAgent):
                     "path": path,
                     "description": desc or "No description provided."
                 })
-
         elif isinstance(files, list):
-            # Ensure each item has 'path' and 'description'
             plan["files"] = [
                 f if isinstance(f, dict) and "path" in f
                 else {"path": str(f), "description": "Autogenerated"}
                 for f in files
             ]
-
         else:
             plan["files"] = []
 

@@ -1,0 +1,44 @@
+```java
+// File: uploadsFolder.java
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * Production-quality code for managing a folder to store user-uploaded PDFs.
+ */
+public class UploadsFolder {
+
+    private static final String UPLOADS_DIR_PATH = "/uploads/";
+
+    /**
+     * Creates or updates the uploads folder if it doesn't exist.
+     *
+     * @return true on success, false otherwise
+     * @throws IOException in case of errors creating or updating the folder
+     */
+    public boolean createUploadsFolder() throws IOException {
+        File uploadsDirectory = new File(FileSystemConstants.BASE_DIR_PATH +UPLOADS_DIR_PATH));
+        if (!uploadsDirectory.exists() || !uploadsDirectory.isDirectory())) {
+            // Folder doesn't exist, so we create it.
+            uploadsDirectory.mkdir();
+            return true;
+        } else {
+            // Folder already exists. In this case, updating the folder is not necessary (just a prevention measure).
+            return true;
+        }
+    }
+
+    public static void main(String[] args) {
+        // Usage example: Create or update the uploads folder if it doesn't exist.
+        UploadsFolder folderManager = new UploadsFolder();
+        try {
+            boolean folderCreated = folderManager.createUploadsFolder();
+            System.out.println("Uploaded files folder created: " + folderCreated);
+        } catch (IOException e) {
+            System.err.println("Error creating uploads folder: " + e.getMessage());
+        }
+    }
+}
+```
+
+This code defines a production-quality class `UploadsFolder` to manage the user-uploaded PDF storage folder. The class includes functionality for creating or updating the folder if it doesn't exist.

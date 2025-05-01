@@ -1,63 +1,79 @@
 # agent_base.py
 
-import requests
-import openai
 import os
 import json
+import requests
+from abc import ABC, abstractmethod
+import openai
 
-class BaseAgent:
+class BaseAgent(ABC):
     def __init__(self, config, memory):
         self.config = config
         self.memory = memory
-        self.session_log = []
 
-    def call_llm(self, prompt, model="ollama", system="You are an AI assistant."):
-        """
-        Call the selected LLM (either local Ollama or OpenAI GPT-4) with a system+user prompt.
-        """
-        if model == "ollama":
-            return self._call_ollama(prompt, system)
-        elif model == "gpt4":
-            return self._call_gpt4(prompt, system)
+        if hasattr(config, "GPT4_API_KEY") and config.GPT4_API_KEY:
+            self.openai_client = openai.OpenAI(api_key=config.GPT4_API_KEY)
         else:
-            raise ValueError(f"Unsupported model: {model}")
+            self.openai_client = None
 
-    def _call_ollama(self, prompt, system):
+    @abstractmethod
+    def generate_plan(self, user_prompt: str):
+        pass
+
+    def call_llm(self, prompt: str, model: str = "gpt-4", system: str = "") -> str:
+        model = model.lower().strip()
+        print(f"🧠 Calling LLM → Model: {model}")
+
+        if model.startswith("gpt"):
+            if not self.openai_client:
+                return "❌ No OpenAI client configured."
+            return self._call_openai_chat(model, prompt, system)
+        else:
+            return self._call_ollama_chat(model, prompt, system)
+
+    def _call_openai_chat(self, model, user_prompt, system_prompt="") -> str:
         try:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": user_prompt})
+
+            response = self.openai_client.chat.completions.create(
+                model=model,
+                messages=messages
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"❌ OpenAI error: {e}")
+            return f"❌ OpenAI error: {e}"
+
+    def _call_ollama_chat(self, model, user_prompt, system_prompt="") -> str:
+        try:
+            headers = {"Content-Type": "application/json"}
             payload = {
-                "model": self.config.OLLAMA_MODEL,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt}
-                ],
-                "stream": False
+                "model": model,
+                "messages": []
             }
-            response = requests.post(
-                self.config.OLLAMA_API_URL + "/v1/chat/completions",
-                json=payload
-            )
-            response.raise_for_status()
-            result = response.json()
-            return result['choices'][0]['message']['content']
-        except Exception as e:
-            print(f"❌ Ollama call failed: {e}")
-            return ""
 
-    def _call_gpt4(self, prompt, system):
-        try:
-            openai.api_key = self.config.GPT4_API_KEY
-            response = openai.ChatCompletion.create(
-                model=self.config.GPT4_MODEL,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return response['choices'][0]['message']['content']
-        except Exception as e:
-            print(f"❌ GPT-4 call failed: {e}")
-            return ""
+            if system_prompt:
+                payload["messages"].append({"role": "system", "content": system_prompt})
+            payload["messages"].append({"role": "user", "content": user_prompt})
 
-    def log(self, message: str):
-        print(message)
-        self.session_log.append(message)
+            res = requests.post(
+                url=self.config.OLLAMA_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            res.raise_for_status()
+            result = res.json()
+
+            # Ollama's new response format
+            if "message" in result and "content" in result["message"]:
+                return result["message"]["content"].strip()
+
+            # Fallback for older formats
+            return result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        except Exception as e:
+            print(f"❌ Ollama error: {e}")
+            return f"❌ Ollama error: {e}"

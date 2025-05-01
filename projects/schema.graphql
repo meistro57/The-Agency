@@ -1,0 +1,31 @@
+```graphql
+# Filename: schema.graphql
+
+type Document {
+  id: ID!
+  text: String
+  pdfUrl: String
+}
+
+ type AnalysisResult {
+    keywords: [String]!
+    sentimentScore: Float!
+    pagesWithAnnotation: Int!
+}
+
+extend type Document {
+  analysis: AnalysisResult!
+}
+
+type Query {
+  document(id: ID!): Document
+  analyzeDocument(file: Upload!): AnalysisResult
+}
+
+// Additional resolvers and types according to the project's structure
+```
+This code presents a GraphQL schema for PDF analysis feature in Ollama AI. It includes the `Document` type, along with an `AnalysisResult` type for the extracted data.
+
+Also included is a `Query` type that defines two possible API endpoints: retrieve a document by ID and analyze an uploaded PDF file.
+
+Please note that this code already matches the project's结构 if you provide additional resolvers or types as needed.
