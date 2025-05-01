@@ -1,0 +1,30 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+.env
+*.env
+
+# Logs and debug
+*.log
+logs/
+
+# VS Code
+.vscode/
+
+# Mac/Linux system files
+.DS_Store
+
+# Models & Ollama cache (if used)
+ollama/
+models/
+downloads/
+
+# Docker
+*.tar
+*.img
+*.pid
