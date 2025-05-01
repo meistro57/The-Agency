@@ -1,10 +1,12 @@
 # config.py
+from dotenv import load_dotenv
+load_dotenv()
 
 import os
 
 class Config:
     # Local model via Ollama
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen:latest")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen:7b")
     OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
 
     # GPT-4 (for QA Agent)
