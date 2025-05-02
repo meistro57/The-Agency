@@ -1,33 +1,26 @@
-# memory_manager.py
+# memory.py
 
-import logging
+import os
 import threading
+import logging
 import mysql.connector
 from mysql.connector import Error
-from typing import Optional
 
-logger = logging.getLogger(__name__)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class MemoryManager:
     """
-    Hybrid memory interface with in-memory caching and optional MySQL persistence.
+    Handles in-memory and optional MySQL-backed key-value storage.
+    Automatically falls back to memory-only mode if DB connection fails.
     """
 
-    def __init__(self, config=None, table_name="memory"):
-        """
-        Initializes the memory manager.
-
-        Args:
-            config: Configuration object with MySQL connection details.
-            table_name (str): Name of the table to store memory in MySQL.
-        """
+    def __init__(self, config=None):
         self.config = config
-        self.conn = None
-        self.table = table_name
         self.cache = {}
         self.lock = threading.Lock()
+        self.conn = None
 
         if self.config:
             try:
@@ -39,40 +32,35 @@ class MemoryManager:
                     database=self.config.MYSQL_DATABASE
                 )
                 self._init_table()
-                logger.info("✅ MemoryManager connected to MySQL.")
+                logging.info("✅ MemoryManager connected to MySQL.")
             except Error as e:
-                logger.error(f"❌ MemoryManager DB connection failed: {e}")
+                logging.error(f"❌ MemoryManager DB connection failed: {e}")
                 self.conn = None
 
-    def _init_table(self):
+    def _init_table(self, table_name="memory"):
         """
-        Creates the memory table if it doesn't exist.
+        Initializes the MySQL table if it doesn't exist.
         """
-        if not self.conn:
-            return
         try:
-            query = f"""
-            CREATE TABLE IF NOT EXISTS {self.table} (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                keyname VARCHAR(255) UNIQUE,
-                value TEXT
-            )
-            """
             cursor = self.conn.cursor()
-            cursor.execute(query)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    keyname VARCHAR(255) UNIQUE,
+                    value TEXT
+                )
+            """)
             self.conn.commit()
-            logger.info(f"📦 Memory table '{self.table}' ensured.")
         except Error as e:
-            logger.error(f"❌ Failed to initialize memory table: {e}")
+            logging.error(f"❌ Failed to create memory table: {e}")
 
     def save(self, key: str, value: str):
         """
-        Stores a key-value pair in memory and optionally in MySQL.
-
-        Args:
-            key (str): The memory key.
-            value (str): The data to store.
+        Saves a key-value pair to memory and optionally to MySQL.
         """
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("Key must be a non-empty string.")
+
         with self.lock:
             self.cache[key] = value
 
@@ -80,23 +68,16 @@ class MemoryManager:
             try:
                 cursor = self.conn.cursor()
                 cursor.execute(
-                    f"REPLACE INTO {self.table} (keyname, value) VALUES (%s, %s)",
+                    "REPLACE INTO memory (keyname, value) VALUES (%s, %s)",
                     (key, value)
                 )
                 self.conn.commit()
             except Error as e:
-                logger.error(f"❌ DB write error for key '{key}': {e}")
+                logging.error(f"❌ DB write error for '{key}': {e}")
 
-    def get(self, key: str, default: Optional[str] = None) -> Optional[str]:
+    def get(self, key: str, default=None):
         """
-        Retrieves a value by key, first from cache, then MySQL.
-
-        Args:
-            key (str): The key to look up.
-            default (str): Value to return if key is not found.
-
-        Returns:
-            str | None: Value if found, else default.
+        Retrieves a value by key from memory or database.
         """
         with self.lock:
             if key in self.cache:
@@ -105,25 +86,27 @@ class MemoryManager:
         if self.conn:
             try:
                 cursor = self.conn.cursor()
-                cursor.execute(f"SELECT value FROM {self.table} WHERE keyname = %s", (key,))
+                cursor.execute("SELECT value FROM memory WHERE keyname=%s", (key,))
                 result = cursor.fetchone()
                 if result:
-                    value = result[0]
                     with self.lock:
-                        self.cache[key] = value
-                    return value
+                        self.cache[key] = result[0]
+                    return result[0]
             except Error as e:
-                logger.error(f"❌ DB read error for key '{key}': {e}")
+                logging.error(f"❌ DB read error for '{key}': {e}")
 
         return default
 
-    def close(self):
+    def close_connection(self):
         """
-        Closes the database connection.
+        Closes the MySQL connection cleanly.
         """
         if self.conn:
-            self.conn.close()
-            logger.info("🛑 MySQL connection closed.")
+            try:
+                self.conn.close()
+                logging.info("🛑 MemoryManager DB connection closed.")
+            except Error as e:
+                logging.error(f"❌ Error closing DB connection: {e}")
 
     def __del__(self):
-        self.close()
+        self.close_connection()
