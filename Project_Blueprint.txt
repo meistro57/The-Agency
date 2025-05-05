@@ -1,0 +1,46 @@
+
+Project Blueprint: The Agency (Rev 2.5)
+1. Mission & Purpose
+
+    Develop a decentralized, multi-agent AI system focused on real-world utility, autonomous task execution, and ethical resilience.
+    Target applications: software engineering, scientific research, automation, and multimedia generation.
+    Design for modularity, developer extensibility, and long-term maintainability.
+
+2. System Architecture
+2.1 Agent Kernel
+
+    Skill Layer: Modular Python functions (e.g., scrape_site(), query_api(), generate_image(prompt)) loaded via plugin system.
+    Memory Layer: Fast-access working memory (in-RAM dicts), persistent symbolic memory (MySQL), semantic memory (FAISS).
+    Execution Engine: Event-driven task loop with context switching and structured retry logic.
+    Ethical Guardrails: Decorators (e.g., @requires_ethics_check) and runtime hooks block disallowed actions. Hooks register at kernel init; use dynamic imports and tracing to enforce constraints.
+
+2.2 Meta-Agent Layer
+
+    Coordinates agents, handles arbitration, and mission orchestration.
+    Uses priority queues + entropy-based analysis to detect overloaded/deadlocked agents.
+    Replanning triggers: failed tasks, elevated conflict frequency, time-to-completion anomalies.
+
+2.3 Message Bus
+
+    Redis Pub/Sub default with optional MQTT or gRPC.
+    Messages use JSON schema, signed and encrypted (TLS 1.3 + HMAC). Schema validated via pydantic.
+
+2.4 Deployment Modes
+
+    Local Mode: SQLite fallback, minimal runtime.
+    LAN Mode: MySQL + shared mount point (e.g., NFS). Agents use hostname-based node identity.
+    Hybrid Mode: Cloud-mirrored MySQL/FAISS (read-only unless override). Cloud target TBD (S3-compatible).
+
+3. Intelligence & Learning
+3.1 Self-Improvement Loop
+
+Log review agents score outcomes by metrics: success flag, time-to-completion, log quality, I/O relevance. Spawn request if failures exceed adaptive threshold or capability gap detected.
+3.2 Adaptive Skill Management
+
+Uses LM Studio/Ollama for local codegen. Lint via ruff; failure blocks deployment. Manual fallback if model generation fails.
+3.3 Memory Dynamics
+
+Semantic memory uses cosine distance with recency weighting (e.g., score = cos_sim * exp(-delta_t / T)). Symbolic/semantic delta compared per mission tag to detect decay or conflicts.
+... [truncated for brevity]
+
+Full HTML continues for all other sections...
