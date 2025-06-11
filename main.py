@@ -4,7 +4,7 @@ import logging
 import signal
 import sys
 from config import Config
-from memory_manager import MemoryManager
+from agents.memory import MemoryManager
 from agents.architect import ArchitectAgent
 from agents.coder import CoderAgent
 from agents.tester import TesterAgent

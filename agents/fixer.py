@@ -117,12 +117,13 @@ class FixerAgent(BaseAgent):
         """
         max_len = 1000
         truncated_code = code if len(code) <= max_len else code[:max_len] + "\n# [Code truncated...]"
+        truncated_output = test_output if len(test_output) <= max_len else test_output[:max_len] + "\n[Truncated]"
 
-        return f"""
-The following file contains broken code based on its test results.
+        return (
+            f"The following file contains broken code based on its test results.\n\n"
+            f"Filename: {path}\n\n"
+            f"--- Current Code ---\n```python\n{truncated_code}\n```\n\n"
+            f"--- Test Output ---\n```\n{truncated_output}\n```\n\n"
+            "Please provide an updated file that resolves the issues."
+        )
 
-Filename: {path}
-
---- Current Code ---
-```python
-{truncated_code}
