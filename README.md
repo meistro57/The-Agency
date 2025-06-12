@@ -89,6 +89,7 @@ export GPT4_API_KEY=your-key
 export OLLAMA_MODEL=qwen:latest
 export MYSQL_USER=agency
 export MYSQL_PASSWORD=agency123
+export MAX_PROJECT_DIR_SIZE_MB=100
 ```
 
 ## 🧪 Run via Terminal
@@ -109,7 +110,7 @@ python interfaces/cli_interface.py
 - Web interface for drag-and-drop blueprints
 - Agent marketplace (plug in your own agents)
 - GitHub auto-push + CI/CD integration
-- Plugin-based extension architecture
+- Plugin-based extension architecture (dynamic agent loading included)
 - Fine-tuned retrieval systems and documentation integration
 
 ## 🧠 Philosophy

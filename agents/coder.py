@@ -97,8 +97,27 @@ class CoderAgent(BaseAgent):
         abs_path = os.path.join(self.config.PROJECTS_DIR, path)
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
 
+        size_limit = getattr(self.config, "MAX_PROJECT_DIR_SIZE_MB", 100)
+        current_size = self._directory_size_mb(self.config.PROJECTS_DIR)
+        projected = current_size + len(code.encode("utf-8")) / (1024 * 1024)
+
+        if projected > size_limit:
+            logger.error(
+                f"❌ Folder size limit exceeded ({size_limit} MB). Skipping {path}."
+            )
+            return
+
         with open(abs_path, "w", encoding="utf-8") as f:
             f.write(code)
+
+    def _directory_size_mb(self, directory: str) -> float:
+        total = 0
+        for root, _, files in os.walk(directory):
+            for name in files:
+                fp = os.path.join(root, name)
+                if os.path.isfile(fp):
+                    total += os.path.getsize(fp)
+        return total / (1024 * 1024)
 
     def _infer_language(self, path: str) -> str:
         ext = os.path.splitext(path)[1]
