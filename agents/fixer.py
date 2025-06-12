@@ -126,3 +126,10 @@ Filename: {path}
 --- Current Code ---
 ```python
 {truncated_code}
+```
+
+--- Test Output ---
+{test_output}
+
+Please provide the fixed {path} file only.
+"""
