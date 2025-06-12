@@ -3,6 +3,9 @@
 import logging
 import signal
 import sys
+import os
+import importlib
+import pkgutil
 from config import Config
 from agents.memory import MemoryManager
 from agents.architect import ArchitectAgent
@@ -21,6 +24,27 @@ def handle_interrupt(sig, frame):
     sys.exit(0)
 
 signal.signal(signal.SIGINT, handle_interrupt)
+
+
+def load_extension_agents(config, memory):
+    """Dynamically load agents from agents/extensions directory."""
+    agents = []
+    ext_dir = os.path.join(os.path.dirname(__file__), "agents", "extensions")
+    if not os.path.isdir(ext_dir):
+        return agents
+
+    for _, module_name, _ in pkgutil.iter_modules([ext_dir]):
+        full_name = f"agents.extensions.{module_name}"
+        try:
+            module = importlib.import_module(full_name)
+            if hasattr(module, "Agent"):
+                agent_cls = getattr(module, "Agent")
+                agents.append(agent_cls(config, memory))
+                logger.info(f"🔌 Loaded extension agent {agent_cls.__name__}")
+        except Exception as e:
+            logger.error(f"❌ Failed to load extension agent {module_name}: {e}")
+
+    return agents
 
 
 def run_agency(prompt: str) -> None:
@@ -49,6 +73,9 @@ def run_agency(prompt: str) -> None:
         reviewer  = ReviewerAgent(Config, memory)
         fixer     = FixerAgent(Config, memory)
         deployer  = DeployerAgent(Config, memory)
+        extra_agents = load_extension_agents(Config, memory)
+        if extra_agents:
+            logger.info(f"🔄 Loaded {len(extra_agents)} extension agents.")
 
         # PLAN
         try:
