@@ -88,6 +88,7 @@ All while using:
 - Docker (for deployment/testing)
 - OpenAI API key (for GPT-4 review agent)
 - Optional: Ollama running Qwen2 or Codestral models (the `setup.sh` script pulls a base model automatically)
+- `python-dotenv` for loading `.env` files
 
 ## 🔌 Setup
 ```bash
