@@ -60,7 +60,8 @@ The Agency combines multiple specialized AI agents:
 All while using:
 - 🧠 MySQL-based persistent memory
 - 🗂️ A modular architecture for future agent extensions
-- 🛡️ Open-source LLMs for code generation, GPT-4 for critical review
+- 🛡️ Open-source LLMs (via Ollama) for code generation with GPT-4 used for critical review.
+  Agents default to these local models but can target OpenAI by setting `CODE_MODEL`.
 
 ## 🧰 Use Cases
 - Generate full-stack web apps from a description
@@ -73,13 +74,13 @@ All while using:
 - Python 3.10+
 - Docker (for deployment/testing)
 - OpenAI API key (for GPT-4 review agent)
-- Optional: Ollama running Qwen2 or Codestral models
+- Optional: Ollama running Qwen2 or Codestral models (the `setup.sh` script pulls a base model automatically)
 
 ## 🔌 Setup
 ```bash
 git clone https://github.com/meistro57/The-Agency.git
 cd The-Agency
-pip install -r requirements.txt
+./setup.sh    # creates .venv and pulls a default Ollama model
 ```
 
 ## 🧠 Configuration
@@ -87,10 +88,15 @@ Edit `config.py` or use environment variables:
 ```bash
 export GPT4_API_KEY=your-key
 export OLLAMA_MODEL=qwen:latest
+export CODE_MODEL=$OLLAMA_MODEL  # defaults to Ollama model
 export MYSQL_USER=agency
 export MYSQL_PASSWORD=agency123
 export MAX_PROJECT_DIR_SIZE_MB=100
 ```
+
+### Using OpenAI
+The system connects to Ollama by default. To run the CoderAgent with an OpenAI
+model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
 
 ## 🧪 Run via Terminal
 ```bash
