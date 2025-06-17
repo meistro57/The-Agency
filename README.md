@@ -57,6 +57,19 @@ The Agency combines multiple specialized AI agents:
 - 🔧 **FixerAgent**: Repairs broken or low-quality code
 - 🚀 **DeployerAgent**: Packages the project into a Docker container and runs it
 
+### Agent Modules
+
+| Module | Description |
+| --- | --- |
+| `architect.py` – **ArchitectAgent** | Breaks down user prompts into a structured software plan |
+| `coder.py` – **CoderAgent** | Generates source code from the plan |
+| `tester.py` – **TesterAgent** | Runs unit tests and captures logs |
+| `reviewer.py` – **ReviewerAgent** | Provides GPT‑4 based code reviews |
+| `fixer.py` – **FixerAgent** | Applies automated fixes based on test results |
+| `deployer.py` – **DeployerAgent** | Builds Docker images and launches containers |
+| `memory.py` – **MemoryManager** | Persists state using an optional MySQL backend |
+| `task_manager.py` – **TaskManager** | Tracks outstanding and completed tasks |
+
 All while using:
 - 🧠 MySQL-based persistent memory
 - 🗂️ A modular architecture for future agent extensions
@@ -126,6 +139,3 @@ Built to replace the drudgework. Built to experiment faster. Built to make maker
 ```
 
 Let the build commence. ☕
-
-=======
-# The-Agency
