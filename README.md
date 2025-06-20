@@ -132,6 +132,9 @@ python interfaces/cli_interface.py
 - GitHub auto-push + CI/CD integration
 - Plugin-based extension architecture (dynamic agent loading included)
 - Fine-tuned retrieval systems and documentation integration
+- AI-driven refactoring suggestions for legacy codebases
+- CLI-based project management commands
+- Optional containerization support with Podman
 
 ## 🧠 Philosophy
 "Tell it what you need and it will do the rest."

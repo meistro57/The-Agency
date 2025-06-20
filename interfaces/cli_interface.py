@@ -3,11 +3,14 @@
 import logging
 import os
 import sys
+import argparse
+import shutil
 
 # Ensure the project root is on the path when running directly
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from main import run_agency
+from config import Config
 
 # Logging setup
 logging.basicConfig(
@@ -53,5 +56,39 @@ def launch_cli(input_func=input, output_func=print):
             logging.exception("Unexpected exception in CLI loop.")
 
 
+def main():
+    parser = argparse.ArgumentParser(description="The Agency CLI")
+    sub = parser.add_subparsers(dest="command")
+
+    gen = sub.add_parser("generate", help="Generate a new project")
+    gen.add_argument("prompt", nargs="+", help="Project prompt")
+
+    sub.add_parser("list-projects", help="List existing projects")
+
+    delp = sub.add_parser("delete-project", help="Delete a project")
+    delp.add_argument("name")
+
+    ref = sub.add_parser("refactor", help="Suggest refactors for code")
+    ref.add_argument("path")
+
+    args = parser.parse_args()
+
+    if args.command == "generate":
+        run_agency(" ".join(args.prompt))
+    elif args.command == "list-projects":
+        projects = os.listdir(Config.PROJECTS_DIR)
+        for p in projects:
+            print(p)
+    elif args.command == "delete-project":
+        target = os.path.join(Config.PROJECTS_DIR, args.name)
+        shutil.rmtree(target, ignore_errors=True)
+        print(f"Deleted {args.name}")
+    elif args.command == "refactor":
+        from tools.refactor import suggest_refactors
+        print(suggest_refactors(args.path))
+    else:
+        launch_cli()
+
+
 if __name__ == "__main__":
-    launch_cli()
+    main()

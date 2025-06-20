@@ -12,13 +12,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 class DeployerAgent(BaseAgent):
     """
-    Builds and runs the generated project using Docker.
+    Builds and runs the generated project using a container tool.
     """
 
     def __init__(self, config, memory):
         super().__init__(config, memory)
         self.role = "Deployment Manager"
-        self.description = "Builds Docker image and launches container"
+        self.description = "Builds container image and launches container"
+        self.container_tool = getattr(config, "CONTAINER_TOOL", "docker")
 
     def generate_plan(self, user_prompt: str):
         """Not applicable for deployer agent (returns empty)."""
@@ -76,18 +77,18 @@ class DeployerAgent(BaseAgent):
         Args:
             image_name (str): Docker image name.
         """
-        logger.info(f"🔧 Building Docker image '{image_name}'...")
+        logger.info(f"🔧 Building {self.container_tool} image '{image_name}'...")
 
         try:
             subprocess.run(
-                ["docker", "build", "-t", image_name, self.config.PROJECTS_DIR],
+                [self.container_tool, "build", "-t", image_name, self.config.PROJECTS_DIR],
                 check=True
             )
         except subprocess.CalledProcessError as e:
-            logger.error(f"❌ Docker build failed: {e}")
-            logger.info("💡 Ensure Docker is installed, running, and your Dockerfile is valid.")
+            logger.error(f"❌ {self.container_tool} build failed: {e}")
+            logger.info(f"💡 Ensure {self.container_tool} is installed, running, and your Dockerfile is valid.")
         except FileNotFoundError:
-            logger.error("❌ Docker not found. Is Docker installed and in your PATH?")
+            logger.error(f"❌ {self.container_tool} not found. Is it installed and in your PATH?")
 
     def _run_container(self, image_name: str = "the-agency-app", port: str = "8080") -> None:
         """
@@ -97,15 +98,15 @@ class DeployerAgent(BaseAgent):
             image_name (str): Docker image name to run.
             port (str): Host:container port mapping.
         """
-        logger.info(f"🐳 Running container '{image_name}' on port {port}...")
+        logger.info(f"🐳 Running container '{image_name}' on port {port} using {self.container_tool}...")
 
         try:
             subprocess.run(
-                ["docker", "run", "-d", "--rm", "-p", f"{port}:{port}", image_name],
+                [self.container_tool, "run", "-d", "--rm", "-p", f"{port}:{port}", image_name],
                 check=True
             )
         except subprocess.CalledProcessError as e:
             logger.error(f"❌ Failed to run container: {e}")
             logger.info(f"💡 Check if port {port} is free or if the image '{image_name}' exists.")
         except FileNotFoundError:
-            logger.error("❌ Docker not found. Is Docker installed and in your PATH?")
+            logger.error(f"❌ {self.container_tool} not found. Is it installed and in your PATH?")
