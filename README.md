@@ -95,6 +95,7 @@ All while using:
 git clone https://github.com/meistro57/The-Agency.git
 cd The-Agency
 ./setup.sh    # creates .venv and pulls a default Ollama model
+./install_and_test_ollama.sh  # installs Ollama and verifies the Qwen model
 ```
 
 ## 🧠 Configuration
