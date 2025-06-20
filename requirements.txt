@@ -3,3 +3,4 @@ requests
 mysql-connector-python
 flask
 python-dotenv
+radon

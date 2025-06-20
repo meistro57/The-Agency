@@ -26,6 +26,9 @@ class Config:
     PROJECTS_DIR = os.getenv("PROJECTS_DIR", "./projects")
     LOGS_DIR = os.getenv("LOGS_DIR", "./logs")
 
+    # Containerization
+    CONTAINER_TOOL = os.getenv("CONTAINER_TOOL", "docker")
+
     # Failsafe size limit for generated projects (in MB)
     MAX_PROJECT_DIR_SIZE_MB = int(os.getenv("MAX_PROJECT_DIR_SIZE_MB", 100))
 
