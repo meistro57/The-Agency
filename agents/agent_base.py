@@ -101,9 +101,13 @@ class BaseAgent(ABC):
 
         timeout = getattr(self.config, "REQUEST_TIMEOUT", 60)
 
+        url = self.config.OLLAMA_API_URL.rstrip("/")
+        if not url.endswith("/api/chat") and not url.endswith("/api/generate"):
+            url = f"{url}/api/chat"
+
         try:
             res = requests.post(
-                url=self.config.OLLAMA_API_URL,
+                url=url,
                 headers=headers,
                 json=payload,
                 timeout=timeout

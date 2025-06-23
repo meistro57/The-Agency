@@ -7,7 +7,10 @@ import os
 class Config:
     # Local model via Ollama
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen:7b")
-    OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
+    # Default to the chat endpoint for Ollama's API
+    OLLAMA_API_URL = os.getenv(
+        "OLLAMA_API_URL", "http://localhost:11434/api/chat"
+    )
     CODE_MODEL = os.getenv("CODE_MODEL", OLLAMA_MODEL)
 
     # GPT-4 (for QA Agent)

@@ -45,22 +45,37 @@ class DeployerAgent(BaseAgent):
         Args:
             file_paths (List[str]): Generated file paths to scan.
         """
-        if not file_paths or all(not f.endswith(".py") for f in file_paths):
-            logger.error("❌ No valid Python files found for Dockerfile entry.")
+        if not file_paths:
+            logger.error("❌ No generated files provided for Dockerfile creation.")
             return
 
-        entry = "main.py"
-        if not any("main.py" in f for f in file_paths):
-            entry = next((f for f in file_paths if f.endswith(".py")), "app.py")
+        python_files = [f for f in file_paths if f.endswith(".py")]
+        node_files = [f for f in file_paths if f.endswith(".js") or f.endswith(".ts")]
 
-        dockerfile = f"""
-        # Auto-generated Dockerfile
-        FROM python:3.10-slim
-        WORKDIR /app
-        COPY . .
-        RUN pip install -r requirements.txt || true
-        CMD ["python", "{entry}"]
-        """
+        if python_files:
+            entry = "main.py" if "main.py" in python_files else python_files[0]
+            dockerfile = f"""
+            # Auto-generated Dockerfile
+            FROM python:3.10-slim
+            WORKDIR /app
+            COPY . .
+            RUN pip install -r requirements.txt || true
+            CMD [\"python\", \"{os.path.basename(entry)}\"]
+            """
+        elif node_files:
+            entry = "server.js" if "server.js" in node_files else node_files[0]
+            dockerfile = f"""
+            # Auto-generated Dockerfile
+            FROM node:20-alpine
+            WORKDIR /app
+            COPY package*.json ./ || true
+            RUN npm install || true
+            COPY . .
+            CMD [\"node\", \"{os.path.basename(entry)}\"]
+            """
+        else:
+            logger.error("❌ No valid application entrypoint found for Dockerfile.")
+            return
 
         try:
             docker_path = os.path.join(self.config.PROJECTS_DIR, "Dockerfile")
