@@ -9,10 +9,18 @@ cd "$ROOT_DIR"
 echo "Pulling latest code..."
 git pull --ff-only
 
-if [ -f ".venv/bin/activate" ]; then
-    echo "Activating virtual environment..."
-    source .venv/bin/activate
+# Ensure virtual environment exists
+if [ ! -f ".venv/bin/activate" ]; then
+    echo "Virtual environment not found. Running setup..."
+    ./setup.sh
 fi
+
+echo "Activating virtual environment..."
+source .venv/bin/activate
+
+# Install/update dependencies each run in case requirements changed
+echo "Installing Python dependencies..."
+pip install -r requirements.txt
 
 echo "Starting The Agency..."
 python interfaces/cli_interface.py
