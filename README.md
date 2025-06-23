@@ -96,6 +96,7 @@ git clone https://github.com/meistro57/The-Agency.git
 cd The-Agency
 ./setup.sh    # creates .venv and pulls a default Ollama model
 ./install_and_test_ollama.sh  # installs Ollama and verifies the Qwen model
+./deploy.sh   # pulls latest code and launches The Agency
 ```
 
 ## 🧠 Configuration
@@ -116,6 +117,8 @@ model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
 ## 🧪 Run via Terminal
 ```bash
 python interfaces/cli_interface.py
+# or just run the deploy script
+./deploy.sh
 ```
 
 ## 🧪 Workflow
