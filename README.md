@@ -121,6 +121,15 @@ python interfaces/cli_interface.py
 ./deploy.sh
 ```
 
+## 🐳 Run with Docker Compose
+This repository ships with a `docker-compose.yml` that runs The Agency and MySQL
+in separate containers. Build and start everything with:
+```bash
+docker compose up --build
+```
+The application container automatically connects to the `mysql` service defined
+in the compose file.
+
 ## 🧪 Workflow
 1. Accepts prompt from user (chat or file)
 2. Architect breaks into structured blueprint
@@ -147,3 +156,4 @@ Built to replace the drudgework. Built to experiment faster. Built to make maker
 ```
 
 Let the build commence. ☕
+

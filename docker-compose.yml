@@ -1,0 +1,31 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    container_name: the-agency
+    volumes:
+      - .:/app
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=agency
+      - MYSQL_PASSWORD=agency123
+      - MYSQL_DATABASE=the_agency
+    depends_on:
+      - mysql
+    command: python interfaces/cli_interface.py
+  mysql:
+    image: mysql:8.0
+    container_name: the-agency-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=the_agency
+      - MYSQL_USER=agency
+      - MYSQL_PASSWORD=agency123
+      - MYSQL_ROOT_PASSWORD=rootpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+volumes:
+  mysql_data:
