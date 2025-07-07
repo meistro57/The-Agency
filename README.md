@@ -1,5 +1,4 @@
-For the record I have no clue what i'm doing!
-Extremely new and probably broken lol
+The Agency is an open-source multi-agent system that autonomously generates, tests, and deploys software solutions.
 
 ### Multi-Agent Software Generation System
 
