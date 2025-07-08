@@ -6,6 +6,8 @@ from agents.deployer import DeployerAgent
 from agents.coder import CoderAgent
 from agents.agent_base import BaseAgent
 from agents.memory import MemoryManager
+from agents.main_agent import MainAgent
+from agents.supervisor import SupervisorAgent
 
 
 class DummyConfig:
@@ -87,3 +89,27 @@ def test_call_llm_routes(monkeypatch):
     called.clear()
     agent.call_llm("hi", model="other")
     assert "ollama" in called and "openai" not in called
+
+
+def test_supervisor_validation():
+    sup = SupervisorAgent(DummyConfig, MemoryManager())
+    assert not sup.validate_output("error: failure")
+    assert sup.validate_output("all good")
+
+
+def test_main_agent_pipeline(monkeypatch, tmp_path):
+    DummyConfig.PROJECTS_DIR = str(tmp_path)
+    mem = MemoryManager()
+    agent = MainAgent(DummyConfig, mem)
+
+    monkeypatch.setattr(agent.architect, "generate_plan", lambda p: {"files": [{"path": "app.py", "description": "x"}]})
+    monkeypatch.setattr(agent.coder, "_generate_code", lambda d, p: "print('hi')")
+    monkeypatch.setattr(agent.tester, "run_tests", lambda f: {"app.py": {"status": "passed"}})
+    monkeypatch.setattr(agent.reviewer, "review_code", lambda f: {})
+    monkeypatch.setattr(agent.deployer, "deploy_project", lambda f: True)
+    monkeypatch.setattr(agent.failsafe, "check_text", lambda t: True)
+    monkeypatch.setattr(agent.fixer, "fix_code", lambda f, r: None)
+
+    result = agent.run_pipeline("test")
+    assert result["status"] == "success"
+    assert (tmp_path / "app.py").exists()

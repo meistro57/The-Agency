@@ -60,6 +60,8 @@ The Agency combines multiple specialized AI agents:
 
 | Module | Description |
 | --- | --- |
+| `main_agent.py` – **MainAgent** | Coordinates the entire workflow |
+| `supervisor.py` – **SupervisorAgent** | Validates outputs for sanity |
 | `architect.py` – **ArchitectAgent** | Breaks down user prompts into a structured software plan |
 | `coder.py` – **CoderAgent** | Generates source code from the plan |
 | `tester.py` – **TesterAgent** | Runs unit tests and captures logs |
