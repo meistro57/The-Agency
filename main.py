@@ -20,8 +20,14 @@ from agents.self_learner import SelfLearningAgent
 from agents.product_creator import ProductCreatorAgent
 from agents.rl_optimizer import RLOptimizer
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+os.makedirs(Config.LOGS_DIR, exist_ok=True)
+file_handler = logging.FileHandler(os.path.join(Config.LOGS_DIR, "agency.log"))
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+logger.addHandler(file_handler)
 
 # Graceful exit handler
 def handle_interrupt(sig, frame):
@@ -64,7 +70,7 @@ def run_agency(prompt: str) -> None:
         return
 
     try:
-        memory = MemoryManager()
+        memory = MemoryManager(Config)
         if not hasattr(Config, "GPT4_API_KEY") or not hasattr(Config, "OLLAMA_API_URL"):
             logger.error("🛑 Config is invalid. Please check required keys.")
             return
