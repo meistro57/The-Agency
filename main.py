@@ -14,6 +14,9 @@ from agents.tester import TesterAgent
 from agents.reviewer import ReviewerAgent
 from agents.fixer import FixerAgent
 from agents.deployer import DeployerAgent
+from agents.failsafe import FailsafeAgent
+from agents.evolution_logger import EvolutionLogger
+from agents.self_learner import SelfLearningAgent
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -73,6 +76,9 @@ def run_agency(prompt: str) -> None:
         reviewer  = ReviewerAgent(Config, memory)
         fixer     = FixerAgent(Config, memory)
         deployer  = DeployerAgent(Config, memory)
+        failsafe  = FailsafeAgent(Config, memory)
+        evo_log   = EvolutionLogger(Config, memory)
+        learner   = SelfLearningAgent(Config, memory)
         extra_agents = load_extension_agents(Config, memory)
         if extra_agents:
             logger.info(f"🔄 Loaded {len(extra_agents)} extension agents.")
@@ -86,6 +92,7 @@ def run_agency(prompt: str) -> None:
         except Exception as e:
             logger.exception(f"🛑 Error during planning: {e}")
             return
+        evo_log.log_event("planning_complete")
 
         # CODE
         try:
@@ -96,6 +103,16 @@ def run_agency(prompt: str) -> None:
         except Exception as e:
             logger.exception(f"🛑 Error during code generation: {e}")
             return
+        for path in code_files:
+            full_path = os.path.join(Config.PROJECTS_DIR, path)
+            try:
+                with open(full_path, "r", encoding="utf-8") as f:
+                    if not failsafe.check_text(f.read()):
+                        logger.error("🛑 Failsafe triggered. Aborting.")
+                        return
+            except FileNotFoundError:
+                continue
+        evo_log.log_event("code_generated")
 
         # TEST
         try:
@@ -103,17 +120,20 @@ def run_agency(prompt: str) -> None:
         except Exception as e:
             logger.exception(f"🛑 Error during testing: {e}")
             test_results = {}
+        evo_log.log_event("tests_run")
 
         # FIX (optional based on test results)
         if any(r.get("status") == "failed" for r in test_results.values() if isinstance(r, dict)):
             logger.info("🔧 Detected test failures — attempting fixes...")
             fixer.fix_code(code_files, test_results)
+            evo_log.log_event("fixes_applied")
 
         # REVIEW
         try:
             reviewer.review_code(code_files)
         except Exception as e:
             logger.exception(f"🛑 Error during code review: {e}")
+        evo_log.log_event("review_complete")
 
         # DEPLOY (prompt user to confirm)
         confirm = input("⚠️ Deploy the generated system? (yes/no): ").strip().lower()
@@ -126,7 +146,10 @@ def run_agency(prompt: str) -> None:
         except Exception as e:
             logger.exception(f"🛑 Error during deployment: {e}")
             return
+        evo_log.log_event("deployed")
 
+        learner.analyze_logs(os.path.join(Config.LOGS_DIR, "agency.log"))
+        
         logger.info("✅ All systems go.")
 
     except Exception as e:
