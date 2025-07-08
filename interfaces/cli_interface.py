@@ -21,41 +21,63 @@ logging.basicConfig(
 
 
 def launch_cli(input_func=input, output_func=print):
-    """
-    Launches the CLI interface for The Agency.
-    Accepts optional input/output functions for testability.
-    """
+    """Interactive menu for running and resuming projects."""
     output_func("🕶️  Welcome to The Agency Terminal Interface")
-    output_func("Type your request like you're the boss. I’ll handle the rest.")
-    output_func("To exit, press Ctrl+C\n")
+    output_func("Type your request like you're the boss. I'll handle the rest.")
 
     while True:
+        output_func("\nSelect an option:")
+        output_func("1) New project")
+        output_func("2) Continue project")
+        output_func("3) Quit")
         try:
-            prompt = input_func("📝 What would you like The Agency to build?\n> ").strip()
+            choice = input_func("> ").strip().lower()
 
-            if not prompt:
-                output_func("⚠️  Please enter a valid request.")
+            if choice in {"3", "q", "quit", "exit"}:
+                output_func("👋 Shutting down The Agency CLI.")
+                logging.info("CLI shutdown by user.")
+                break
+
+            if choice in {"1", "n", "new"}:
+                prompt = input_func("📝 What would you like The Agency to build?\n> ").strip()
+                if not prompt:
+                    output_func("⚠️  Please enter a valid request.")
+                    continue
+                logging.info(f"User input: {prompt}")
+                run_agency(prompt)
                 continue
 
-            if prompt.lower() in {"help", "?"}:
-                output_func("ℹ️  Enter a plain-English request to build software.")
-                output_func("    Example: A website to track planets using React + Flask.")
-                output_func("    Press Ctrl+C to exit.\n")
+            if choice in {"2", "c", "continue"}:
+                projects = os.listdir(Config.PROJECTS_DIR)
+                if not projects:
+                    output_func("No past projects found.")
+                    continue
+                for idx, name in enumerate(projects, 1):
+                    output_func(f"{idx}) {name}")
+                sel = input_func("Select project number: ").strip()
+                if not sel.isdigit() or int(sel) < 1 or int(sel) > len(projects):
+                    output_func("Invalid selection.")
+                    continue
+                project = projects[int(sel) - 1]
+                Config.PROJECTS_DIR = os.path.join(Config.PROJECTS_DIR, project)
+                prompt = input_func("📝 What would you like to do next?\n> ").strip()
+                if not prompt:
+                    output_func("⚠️  Please enter a valid request.")
+                    continue
+                logging.info(f"Continuing {project} with prompt: {prompt}")
+                run_agency(prompt)
                 continue
 
-            logging.info(f"User input: {prompt}")
-            run_agency(prompt)
+            output_func("Invalid option. Try again.")
 
         except KeyboardInterrupt:
             output_func("\n👋 Shutting down The Agency CLI.")
             logging.info("CLI shutdown by user.")
             break
-
         except EOFError:
             output_func("\n👋 No input detected. Exiting.")
             logging.info("CLI received EOF; exiting.")
             break
-
         except Exception as e:
             output_func(f"🔥 An unexpected error occurred: {e}")
             logging.exception("Unexpected exception in CLI loop.")
