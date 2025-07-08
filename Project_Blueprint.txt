@@ -10,7 +10,7 @@ Project Blueprint: The Agency (Rev 2.5)
 2.1 Agent Kernel
 
     Skill Layer: Modular Python functions (e.g., scrape_site(), query_api(), generate_image(prompt)) loaded via plugin system.
-    Memory Layer: Fast-access working memory (in-RAM dicts), persistent symbolic memory (MySQL), semantic memory (FAISS).
+    Memory Layer: Fast-access working memory (in-RAM dicts), persistent symbolic memory (SQLite), semantic memory (FAISS).
     Execution Engine: Event-driven task loop with context switching and structured retry logic.
     Ethical Guardrails: Decorators (e.g., @requires_ethics_check) and runtime hooks block disallowed actions. Hooks register at kernel init; use dynamic imports and tracing to enforce constraints.
 
@@ -28,8 +28,8 @@ Project Blueprint: The Agency (Rev 2.5)
 2.4 Deployment Modes
 
     Local Mode: SQLite fallback, minimal runtime.
-    LAN Mode: MySQL + shared mount point (e.g., NFS). Agents use hostname-based node identity.
-    Hybrid Mode: Cloud-mirrored MySQL/FAISS (read-only unless override). Cloud target TBD (S3-compatible).
+    LAN Mode: SQLite on a shared mount point (e.g., NFS). Agents use hostname-based node identity.
+    Hybrid Mode: Cloud-mirrored SQLite/FAISS (read-only unless override). Cloud target TBD (S3-compatible).
 
 3. Intelligence & Learning
 3.1 Self-Improvement Loop

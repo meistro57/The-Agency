@@ -2,7 +2,7 @@
 
 ## Phase 0: Environment Setup
 - [x] Install Python 3.10+ and Docker
-- [x] Configure MySQL and vector database
+- [x] Configure SQLite and vector database
 - [x] Pull local models via Ollama
 - [x] Run `deploy.sh` to verify setup
 

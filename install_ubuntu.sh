@@ -12,21 +12,10 @@ sudo apt-get install -y \
     python3 \
     python3-venv \
     python3-pip \
-    mysql-server \
     git \
     curl \
     docker.io
 
-# Start MySQL service
-sudo systemctl enable --now mysql
-
-# Set up MySQL database and user
-sudo mysql <<MYSQL
-CREATE DATABASE IF NOT EXISTS the_agency;
-CREATE USER IF NOT EXISTS 'agency'@'localhost' IDENTIFIED BY 'agency123';
-GRANT ALL PRIVILEGES ON the_agency.* TO 'agency'@'localhost';
-FLUSH PRIVILEGES;
-MYSQL
 
 # Set up Python virtual environment
 python3 -m venv .venv

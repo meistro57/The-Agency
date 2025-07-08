@@ -21,7 +21,7 @@ The-Agency/
 │   ├── reviewer.py        # Uses GPT-4 to review and give feedback
 │   ├── fixer.py           # Uses test feedback to auto-repair code
 │   ├── deployer.py        # Creates Docker/CI/CD and deploys
-│   ├── memory.py          # MySQL-based memory and task recall
+│   ├── memory.py          # SQLite-based memory and task recall
 │   └── task_manager.py    # Maintains current task list and their status
 ├── tools/                 # Folder: shared utilities
 │   ├── context_loader.py  # Retrieves relevant code snippets or docs
@@ -68,11 +68,11 @@ The Agency combines multiple specialized AI agents:
 | `reviewer.py` – **ReviewerAgent** | Provides GPT‑4 based code reviews |
 | `fixer.py` – **FixerAgent** | Applies automated fixes based on test results |
 | `deployer.py` – **DeployerAgent** | Builds Docker images and launches containers |
-| `memory.py` – **MemoryManager** | Persists state using an optional MySQL backend |
+| `memory.py` – **MemoryManager** | Persists state using an optional SQLite backend |
 | `task_manager.py` – **TaskManager** | Tracks outstanding and completed tasks |
 
 All while using:
-- 🧠 MySQL-based persistent memory
+- 🧠 SQLite-based persistent memory
 - 🗂️ A modular architecture for future agent extensions
 - 🛡️ Open-source LLMs (via Ollama) for code generation with GPT-4 used for critical review.
   Agents default to these local models but can target OpenAI by setting `CODE_MODEL`.
@@ -102,7 +102,7 @@ cd The-Agency
 ./install_and_test_ollama.sh  # installs Ollama and verifies the Qwen model
 ./deploy.sh   # updates code, installs deps if needed, then launches The Agency
 python tools/env_check.py     # verify Python and Docker
-python tools/db_setup.py      # initialize MySQL database
+python tools/db_setup.py      # initialize SQLite database
 ```
 
 ## 🧠 Configuration
@@ -111,8 +111,7 @@ Edit `config.py` or use environment variables:
 export GPT4_API_KEY=your-key
 export OLLAMA_MODEL=qwen:latest
 export CODE_MODEL=$OLLAMA_MODEL  # defaults to Ollama model
-export MYSQL_USER=agency
-export MYSQL_PASSWORD=agency123
+export SQLITE_PATH=the_agency.db
 export MAX_PROJECT_DIR_SIZE_MB=100
 ```
 
@@ -130,13 +129,11 @@ python interfaces/web_dashboard.py
 ```
 
 ## 🐳 Run with Docker Compose
-This repository ships with a `docker-compose.yml` that runs The Agency and MySQL
-in separate containers. Build and start everything with:
+This repository ships with a `docker-compose.yml` that runs The Agency. Build and start everything with:
 ```bash
 docker compose up --build
 ```
-The application container automatically connects to the `mysql` service defined
-in the compose file.
+The application container stores persistent state in a local SQLite database.
 
 ## 🧪 Workflow
 1. Accepts prompt from user (chat or file)
