@@ -1,0 +1,11 @@
+<!doctype html>
+<title>Node Editor</title>
+<h1>ComfyUI Node Editor</h1>
+<form method="post">
+  Name: <input name="name" />
+  Text: <input name="text" />
+  <input type="submit" />
+</form>
+<ul>
+{% for n,t in nodes.items %}<li><b>{{ n }}</b>: {{ t }}</li>{% endfor %}
+</ul>

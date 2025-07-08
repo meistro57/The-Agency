@@ -28,8 +28,8 @@ The-Agency/
 │   └── tools.py           # Misc helpers like run_python_code(), etc.
 ├── interfaces/            # Optional: user input & UX layers
 │   ├── cli_interface.py   # For terminal input/output
-│   ├── web_dashboard.py   # Flask-based dashboard
-│   ├── node_editor.py     # ComfyUI-style visual editor
+│   ├── django_dashboard/  # Django-based dashboard and node editor
+│   ├── node_editor.py     # Flask-based visual editor (legacy)
 │   └── qt_interface.py    # Qt-based GUI
 ├── projects/              # Folder: auto-generated projects (default path)
 ├── logs/                  # Folder: runtime logs, test results
@@ -91,7 +91,7 @@ All while using:
 - Write & run ML pipelines
 - Build deployment pipelines on autopilot
 - Monitor output with a failsafe agent
-- View progress via the Flask dashboard
+- View progress via the Django dashboard
 - Annotate planning blueprints for clarity
 
 ## 💽 Requirements
