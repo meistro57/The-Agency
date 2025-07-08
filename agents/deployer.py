@@ -68,9 +68,8 @@ class DeployerAgent(BaseAgent):
             # Auto-generated Dockerfile
             FROM node:20-alpine
             WORKDIR /app
-            COPY package*.json ./ || true
-            RUN npm install || true
             COPY . .
+            RUN npm install || true
             CMD [\"node\", \"{os.path.basename(entry)}\"]
             """
         else:
