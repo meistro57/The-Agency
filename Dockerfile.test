@@ -1,0 +1,9 @@
+FROM python:3.10-slim
+# Install system deps for PyQt6
+RUN apt-get update && apt-get install -y libgl1 libxkbcommon-x11-0 libxcb-cursor0 libegl1 && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt pytest
+COPY . .
+ENV QT_QPA_PLATFORM=offscreen
+CMD ["pytest", "-q"]
