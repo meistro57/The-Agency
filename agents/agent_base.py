@@ -7,6 +7,10 @@ import requests
 import traceback
 from abc import ABC, abstractmethod
 import openai
+try:
+    import anthropic
+except ImportError:  # pragma: no cover - optional dependency
+    anthropic = None
 from typing import Any, Dict, Optional
 
 # Logging config
@@ -43,6 +47,12 @@ class BaseAgent(ABC):
         else:
             self.openai_client = openai.OpenAI(api_key=key)
 
+        akey = getattr(config, "ANTHROPIC_API_KEY", "")
+        if anthropic and akey:
+            self.anthropic_client = anthropic.Anthropic(api_key=akey)
+        else:
+            self.anthropic_client = None
+
     @abstractmethod
     def generate_plan(self, user_prompt: str):
         """
@@ -73,8 +83,9 @@ class BaseAgent(ABC):
 
         if model.startswith("gpt"):
             return self._call_openai_chat(model, prompt, system)
-        else:
-            return self._call_ollama_chat(model, prompt, system)
+        if model.startswith("claude") or model.startswith("anthropic"):
+            return self._call_anthropic_chat(model, prompt, system)
+        return self._call_ollama_chat(model, prompt, system)
 
     def _call_openai_chat(self, model: str, user_prompt: str, system_prompt: str = "") -> str:
         """
@@ -98,6 +109,27 @@ class BaseAgent(ABC):
             error_details = traceback.format_exc()
             logger.error(f"❌ OpenAI error: {e}\n{error_details}")
             return f"❌ OpenAI error: {e}"
+
+    def _call_anthropic_chat(self, model: str, user_prompt: str, system_prompt: str = "") -> str:
+        """Calls Anthropic's chat API."""
+        if not self.anthropic_client:
+            logger.error("❌ Anthropic client is not configured. Set ANTHROPIC_API_KEY to use this feature.")
+            return "❌ Anthropic client not configured"
+
+        messages = self._build_messages(user_prompt, system_prompt)
+        try:
+            response = self.anthropic_client.messages.create(
+                model=model,
+                max_tokens=1024,
+                messages=messages,
+            )
+            if hasattr(response, "content"):
+                return "".join(block.text for block in response.content).strip()
+            return str(response)
+        except Exception as e:
+            error_details = traceback.format_exc()
+            logger.error(f"❌ Anthropic error: {e}\n{error_details}")
+            return f"❌ Anthropic error: {e}"
 
     def _call_ollama_chat(self, model: str, user_prompt: str, system_prompt: str = "") -> str:
         """

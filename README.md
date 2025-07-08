@@ -75,6 +75,7 @@ The Agency combines multiple specialized AI agents:
 | `rl_optimizer.py` – **RLOptimizerAgent** | Tunes agent performance via RL |
 | `failsafe.py` – **FailsafeAgent** | Monitors runtime for critical errors |
 | `self_learner.py` – **SelfLearnerAgent** | Continuously improves agent skills |
+| `instructions_agent.py` – **InstructionsAgent** | Generates README usage docs |
 | `evolution_logger.py` – **EvolutionLogger** | Tracks system learning over time |
 | `memory.py` – **MemoryManager** | Persists state using an optional SQLite backend |
 | `task_manager.py` – **TaskManager** | Tracks outstanding and completed tasks |
@@ -121,11 +122,15 @@ export OLLAMA_MODEL=qwen:latest
 export CODE_MODEL=$OLLAMA_MODEL  # defaults to Ollama model
 export SQLITE_PATH=the_agency.db
 export MAX_PROJECT_DIR_SIZE_MB=100
+export ANTHROPIC_API_KEY=your-claude-key
 ```
 
 ### Using OpenAI
 The system connects to Ollama by default. To run the CoderAgent with an OpenAI
 model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
+
+### Using Anthropic
+Set `ANTHROPIC_API_KEY` and choose a Claude model (e.g. `claude-3-sonnet-20240229`) to route requests through Anthropic's API.
 
 ## 🧪 Run via Terminal
 ```bash

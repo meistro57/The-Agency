@@ -19,6 +19,9 @@ class FailsafeAgent(BaseAgent):
             r"shutdown",
             r"drop table",
             r"delete from",
+            r"sudo",
+            r"mkfs",
+            r"dd if="
         ]
 
     def generate_plan(self, user_prompt: str):

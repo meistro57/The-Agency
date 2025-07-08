@@ -14,6 +14,7 @@ class DummyConfig:
     GPT4_API_KEY = "test-key"
     OLLAMA_API_URL = "http://localhost"
     CODE_MODEL = "test-model"
+    ANTHROPIC_API_KEY = "test"
     PROJECTS_DIR = tempfile.mkdtemp()
     CONTAINER_TOOL = "docker"
 
@@ -80,8 +81,13 @@ def test_call_llm_routes(monkeypatch):
         called["ollama"] = True
         return "ok"
 
+    def fake_anthropic(model, prompt, system=""):
+        called["anthropic"] = True
+        return "ok"
+
     monkeypatch.setattr(agent, "_call_openai_chat", fake_openai)
     monkeypatch.setattr(agent, "_call_ollama_chat", fake_ollama)
+    monkeypatch.setattr(agent, "_call_anthropic_chat", fake_anthropic)
 
     agent.call_llm("hello", model="gpt-test")
     assert "openai" in called and "ollama" not in called
@@ -89,6 +95,10 @@ def test_call_llm_routes(monkeypatch):
     called.clear()
     agent.call_llm("hi", model="other")
     assert "ollama" in called and "openai" not in called
+
+    called.clear()
+    agent.call_llm("hey", model="claude-3")
+    assert "anthropic" in called
 
 
 def test_supervisor_validation():
