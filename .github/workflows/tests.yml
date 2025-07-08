@@ -1,0 +1,14 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build test image
+        run: docker build -t agency-test -f Dockerfile.test .
+      - name: Run tests
+        run: docker run --rm agency-test
