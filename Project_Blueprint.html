@@ -47,7 +47,7 @@
         <h3>2.1 Agent Kernel</h3>
         <ul>
             <li><strong>Skill Layer:</strong> Modular Python functions (e.g., <code>scrape_site()</code>, <code>query_api()</code>, <code>generate_image(prompt)</code>) loaded via plugin system.</li>
-            <li><strong>Memory Layer:</strong> Fast-access working memory (in-RAM dicts), persistent symbolic memory (MySQL), semantic memory (FAISS).</li>
+            <li><strong>Memory Layer:</strong> Fast-access working memory (in-RAM dicts), persistent symbolic memory (SQLite), semantic memory (FAISS).</li>
             <li><strong>Execution Engine:</strong> Event-driven task loop with context switching and structured retry logic.</li>
             <li><strong>Ethical Guardrails:</strong> Decorators (e.g., <code>@requires_ethics_check</code>) and runtime hooks block disallowed actions. Hooks register at kernel init; use dynamic imports and tracing to enforce constraints.</li>
         </ul>
@@ -65,8 +65,8 @@
         <h3>2.4 Deployment Modes</h3>
         <ul>
             <li><strong>Local Mode:</strong> SQLite fallback, minimal runtime.</li>
-            <li><strong>LAN Mode:</strong> MySQL + shared mount point (e.g., NFS). Agents use <code>hostname</code>-based node identity.</li>
-            <li><strong>Hybrid Mode:</strong> Cloud-mirrored MySQL/FAISS (read-only unless override). Cloud target TBD (S3-compatible).</li>
+            <li><strong>LAN Mode:</strong> SQLite on a shared mount point (e.g., NFS). Agents use <code>hostname</code>-based node identity.</li>
+            <li><strong>Hybrid Mode:</strong> Cloud-mirrored SQLite/FAISS (read-only unless override). Cloud target TBD (S3-compatible).</li>
         </ul>
     </section>
 

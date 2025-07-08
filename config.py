@@ -18,14 +18,9 @@ class Config:
     GPT4_MODEL = os.getenv("GPT4_MODEL", "gpt-4o")
     GPT4_API_URL = os.getenv("GPT4_API_URL", "https://api.openai.com/v1/chat/completions")
 
-    # MySQL memory system
-    # Default to the Docker compose service name so MySQL can run in a
-    # separate container. Override with MYSQL_HOST if running locally.
-    MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")
-    MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
-    MYSQL_USER = os.getenv("MYSQL_USER", "agency")
-    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "agency123")
-    MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "the_agency")
+    # SQLite memory system
+    # Path to the local SQLite database used for persistent memory.
+    SQLITE_PATH = os.getenv("SQLITE_PATH", "the_agency.db")
 
     # Paths
     PROJECTS_DIR = os.getenv("PROJECTS_DIR", "./projects")

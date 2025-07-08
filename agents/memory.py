@@ -3,8 +3,7 @@
 import os
 import threading
 import logging
-import mysql.connector
-from mysql.connector import Error
+import sqlite3
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -12,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 class MemoryManager:
     """
-    Handles in-memory and optional MySQL-backed key-value storage.
+    Handles in-memory and optional SQLite-backed key-value storage.
     Automatically falls back to memory-only mode if DB connection fails.
     """
 
@@ -25,39 +24,30 @@ class MemoryManager:
 
         if self.config:
             try:
-                self.conn = mysql.connector.connect(
-                    host=self.config.MYSQL_HOST,
-                    port=self.config.MYSQL_PORT,
-                    user=self.config.MYSQL_USER,
-                    password=self.config.MYSQL_PASSWORD,
-                    database=self.config.MYSQL_DATABASE
-                )
+                db_path = getattr(self.config, "SQLITE_PATH", "the_agency.db")
+                self.conn = sqlite3.connect(db_path, check_same_thread=False)
                 self._init_table()
-                logging.info("✅ MemoryManager connected to MySQL.")
-            except Error as e:
+                logging.info(f"✅ MemoryManager connected to SQLite at {db_path}.")
+            except sqlite3.Error as e:
                 logging.error(f"❌ MemoryManager DB connection failed: {e}")
                 self.conn = None
 
     def _init_table(self, table_name="memory"):
         """
-        Initializes the MySQL table if it doesn't exist.
+        Initializes the SQLite table if it doesn't exist.
         """
         try:
             cursor = self.conn.cursor()
-            cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {table_name} (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    keyname VARCHAR(255) UNIQUE,
-                    value TEXT
-                )
-            """)
+            cursor.execute(
+                f"CREATE TABLE IF NOT EXISTS {table_name} (keyname TEXT PRIMARY KEY, value TEXT)"
+            )
             self.conn.commit()
-        except Error as e:
+        except sqlite3.Error as e:
             logging.error(f"❌ Failed to create memory table: {e}")
 
     def save(self, key: str, value: str):
         """
-        Saves a key-value pair to memory and optionally to MySQL.
+        Saves a key-value pair to memory and optionally to SQLite.
         """
         if not isinstance(key, str) or not key.strip():
             raise ValueError("Key must be a non-empty string.")
@@ -70,11 +60,11 @@ class MemoryManager:
             try:
                 cursor = self.conn.cursor()
                 cursor.execute(
-                    "REPLACE INTO memory (keyname, value) VALUES (%s, %s)",
+                    "INSERT OR REPLACE INTO memory (keyname, value) VALUES (?, ?)",
                     (key, value)
                 )
                 self.conn.commit()
-            except Error as e:
+            except sqlite3.Error as e:
                 logging.error(f"❌ DB write error for '{key}': {e}")
 
     def get(self, key: str, default=None):
@@ -88,26 +78,26 @@ class MemoryManager:
         if self.conn:
             try:
                 cursor = self.conn.cursor()
-                cursor.execute("SELECT value FROM memory WHERE keyname=%s", (key,))
+                cursor.execute("SELECT value FROM memory WHERE keyname=?", (key,))
                 result = cursor.fetchone()
                 if result:
                     with self.lock:
                         self.cache[key] = result[0]
                     return result[0]
-            except Error as e:
+            except sqlite3.Error as e:
                 logging.error(f"❌ DB read error for '{key}': {e}")
 
         return default
 
     def close_connection(self):
         """
-        Closes the MySQL connection cleanly.
+        Closes the SQLite connection cleanly.
         """
         if self.conn:
             try:
                 self.conn.close()
                 logging.info("🛑 MemoryManager DB connection closed.")
-            except Error as e:
+            except sqlite3.Error as e:
                 logging.error(f"❌ Error closing DB connection: {e}")
 
     def semantic_search(self, query: str, top_k: int = 5):
