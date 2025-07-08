@@ -8,6 +8,7 @@ import importlib
 import pkgutil
 import re
 import time
+import requests
 from config import Config
 from agents.memory import MemoryManager
 from agents.architect import ArchitectAgent
@@ -69,6 +70,26 @@ def load_extension_agents(config, memory):
     return agents
 
 
+def check_api_connections(config) -> bool:
+    """Verify that configured API endpoints are reachable."""
+    timeout = getattr(config, "REQUEST_TIMEOUT", 5)
+    ok = True
+
+    def _try(url: str, name: str) -> None:
+        nonlocal ok
+        if not url:
+            return
+        try:
+            requests.get(url, timeout=timeout)
+        except Exception as e:  # pragma: no cover - network dependent
+            logger.error(f"❌ Cannot reach {name} at {url}: {e}")
+            ok = False
+
+    _try(getattr(config, "OLLAMA_API_URL", ""), "OLLAMA_API_URL")
+    _try(getattr(config, "GPT4_API_URL", ""), "GPT4_API_URL")
+    return ok
+
+
 def run_agency(prompt: str) -> None:
     """
     Orchestrates the Agency's full software lifecycle from idea to deployment.
@@ -92,6 +113,10 @@ def run_agency(prompt: str) -> None:
             return
 
         logger.info("📡 Launching The Agency...")
+
+        if not check_api_connections(Config):
+            logger.error("🛑 API connectivity check failed.")
+            return
 
         # Initialize agents
         architect = ArchitectAgent(Config, memory)
