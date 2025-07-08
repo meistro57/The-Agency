@@ -6,6 +6,8 @@ import sys
 import os
 import importlib
 import pkgutil
+import re
+import time
 from config import Config
 from agents.memory import MemoryManager
 from agents.architect import ArchitectAgent
@@ -19,6 +21,15 @@ from agents.evolution_logger import EvolutionLogger
 from agents.self_learner import SelfLearningAgent
 from agents.product_creator import ProductCreatorAgent
 from agents.rl_optimizer import RLOptimizer
+
+
+def _slugify(text: str) -> str:
+    """Create a filesystem-friendly name from the prompt."""
+    words = re.findall(r"[a-zA-Z0-9]+", text.lower())
+    if not words:
+        return f"project-{int(time.time())}"
+    slug = "-".join(words[:5])
+    return slug[:50]
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
@@ -70,6 +81,11 @@ def run_agency(prompt: str) -> None:
         return
 
     try:
+        project_name = _slugify(prompt)
+        project_dir = os.path.join(Config.PROJECTS_DIR, project_name)
+        os.makedirs(project_dir, exist_ok=True)
+        Config.PROJECTS_DIR = project_dir
+
         memory = MemoryManager(Config)
         if not hasattr(Config, "GPT4_API_KEY") or not hasattr(Config, "OLLAMA_API_URL"):
             logger.error("🛑 Config is invalid. Please check required keys.")

@@ -32,6 +32,7 @@ The-Agency/
 │   ├── node_editor.py     # Flask-based visual editor (legacy)
 │   └── qt_interface.py    # Qt-based GUI
 ├── projects/              # Folder: auto-generated projects (default path)
+                            # Each run creates a subfolder named after the prompt
 ├── logs/                  # Folder: runtime logs, test results
 ├── requirements.txt       # Python dependencies
 └── README.md              # System overview and usage
