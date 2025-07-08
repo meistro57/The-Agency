@@ -109,7 +109,8 @@ class BaseAgent(ABC):
         headers = {"Content-Type": "application/json"}
         payload = {
             "model": model,
-            "messages": self._build_messages(user_prompt, system_prompt)
+            "messages": self._build_messages(user_prompt, system_prompt),
+            "stream": False,
         }
 
         timeout = getattr(self.config, "REQUEST_TIMEOUT", 60)
@@ -123,10 +124,26 @@ class BaseAgent(ABC):
                 url=url,
                 headers=headers,
                 json=payload,
-                timeout=timeout
+                timeout=timeout,
             )
             res.raise_for_status()
-            result = res.json()
+            try:
+                result = res.json()
+            except Exception:
+                # Handle streaming or malformed JSON by concatenating lines
+                text = res.text.strip()
+                parts = []
+                for line in text.splitlines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        if "message" in data and "content" in data["message"]:
+                            parts.append(data["message"]["content"])
+                    except json.JSONDecodeError:
+                        continue
+                return "".join(parts).strip()
 
             # Ollama v1 format
             if "message" in result and "content" in result["message"]:
