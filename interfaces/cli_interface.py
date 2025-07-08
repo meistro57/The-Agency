@@ -51,6 +51,11 @@ def launch_cli(input_func=input, output_func=print):
             logging.info("CLI shutdown by user.")
             break
 
+        except EOFError:
+            output_func("\n👋 No input detected. Exiting.")
+            logging.info("CLI received EOF; exiting.")
+            break
+
         except Exception as e:
             output_func(f"🔥 An unexpected error occurred: {e}")
             logging.exception("Unexpected exception in CLI loop.")
