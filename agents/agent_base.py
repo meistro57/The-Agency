@@ -32,7 +32,16 @@ class BaseAgent(ABC):
 
         self.config = config
         self.memory = memory
-        self.openai_client = openai.OpenAI(api_key=config.GPT4_API_KEY)
+
+        key = getattr(config, "GPT4_API_KEY", "")
+        if not key or key.startswith("your-"):
+            logger.warning(
+                "GPT4_API_KEY is not set or is using the placeholder value. "
+                "OpenAI features will be disabled until a valid key is provided."
+            )
+            self.openai_client = None
+        else:
+            self.openai_client = openai.OpenAI(api_key=key)
 
     @abstractmethod
     def generate_plan(self, user_prompt: str):
@@ -74,6 +83,10 @@ class BaseAgent(ABC):
         Returns:
             str: Assistant message or error.
         """
+        if not self.openai_client:
+            logger.error("❌ OpenAI client is not configured. Set GPT4_API_KEY to use this feature.")
+            return "❌ OpenAI client not configured"
+
         messages = self._build_messages(user_prompt, system_prompt)
         try:
             response = self.openai_client.chat.completions.create(
