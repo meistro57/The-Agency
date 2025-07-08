@@ -12,6 +12,22 @@ TEMPLATE = """
   <input name="prompt" style="width:300px" placeholder="Enter prompt"/>
   <input type="submit" value="Run" />
 </form>
+<h3>Upload Blueprint</h3>
+<form id="up" action="/upload" method="post" enctype="multipart/form-data">
+  <input type="file" name="file" />
+  <input type="submit" value="Upload" />
+</form>
+<script>
+document.addEventListener('dragover', e=>e.preventDefault());
+document.addEventListener('drop', e=>{
+  e.preventDefault();
+  const file=e.dataTransfer.files[0];
+  if(!file) return;
+  const form=new FormData();
+  form.append('file', file);
+  fetch('/upload',{method:'POST',body:form});
+});
+</script>
 <h2>Logs</h2>
 <pre>{{logs}}</pre>
 """
@@ -36,6 +52,16 @@ def run():
     if prompt:
         threading.Thread(target=run_agency, args=(prompt,), daemon=True).start()
     return "Started", 202
+
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    file = request.files.get("file")
+    if file:
+        content = file.read().decode("utf-8", errors="ignore").strip()
+        if content:
+            threading.Thread(target=run_agency, args=(content,), daemon=True).start()
+    return "Uploaded", 202
 
 
 def _tail_log(path, lines=20):
