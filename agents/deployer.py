@@ -105,6 +105,32 @@ class DeployerAgent(BaseAgent):
         except FileNotFoundError:
             logger.error(f"❌ {self.container_tool} not found. Is it installed and in your PATH?")
 
+    def setup_github_workflow(self) -> None:
+        """Create a minimal GitHub Actions workflow for CI tests."""
+        workflows = os.path.join(self.config.PROJECTS_DIR, ".github", "workflows")
+        os.makedirs(workflows, exist_ok=True)
+        ci_path = os.path.join(workflows, "ci.yml")
+        workflow = """
+        name: CI
+        on: [push]
+        jobs:
+          build:
+            runs-on: ubuntu-latest
+            steps:
+              - uses: actions/checkout@v3
+              - uses: actions/setup-python@v4
+                with:
+                  python-version: '3.11'
+              - run: pip install -r requirements.txt
+              - run: pytest -q
+        """
+        try:
+            with open(ci_path, "w", encoding="utf-8") as f:
+                f.write(workflow.strip())
+            logger.info("📝 GitHub Actions workflow created.")
+        except Exception as e:
+            logger.error(f"❌ Failed to write workflow: {e}")
+
     def auto_push_to_github(self, repo_url: str) -> None:
         """Push the generated project to a GitHub repository."""
         logger.info(f"📤 Pushing project to {repo_url}")
