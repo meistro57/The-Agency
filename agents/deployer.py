@@ -105,6 +105,24 @@ class DeployerAgent(BaseAgent):
         except FileNotFoundError:
             logger.error(f"❌ {self.container_tool} not found. Is it installed and in your PATH?")
 
+    def auto_push_to_github(self, repo_url: str) -> None:
+        """Push the generated project to a GitHub repository."""
+        logger.info(f"📤 Pushing project to {repo_url}")
+        proj = self.config.PROJECTS_DIR
+        cmds = [
+            ["git", "init"],
+            ["git", "add", "-A"],
+            ["git", "commit", "-m", "auto deploy"],
+            ["git", "remote", "add", "origin", repo_url],
+            ["git", "push", "-u", "origin", "main"]
+        ]
+        for cmd in cmds:
+            try:
+                subprocess.run(cmd, cwd=proj, check=True)
+            except Exception as e:
+                logger.error(f"❌ Git command failed: {e}")
+                break
+
     def _run_container(self, image_name: str = "the-agency-app", port: str = "8080") -> None:
         """
         Runs the Docker container.
