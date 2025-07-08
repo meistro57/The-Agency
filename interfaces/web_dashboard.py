@@ -2,6 +2,11 @@ from flask import Flask, request, render_template_string
 import threading
 import time
 import os
+import sys
+
+# Ensure the project root is on the Python path when run directly
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from main import run_agency
 
 TEMPLATE = """
