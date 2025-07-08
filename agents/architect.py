@@ -298,4 +298,142 @@ Ensure the plan is production-ready and follows best practices.
             ],
             "api": [
                 {"path": "app/main.py", "description": "FastAPI application entry point", "component": "api"},
-                {"path": "app/
+                {"path": "app/routes.py", "description": "API route definitions", "component": "api"},
+                {"path": "app/models.py", "description": "Pydantic models for request/response", "component": "api"},
+                {"path": "app/database.py", "description": "Database connection and setup", "component": "api"},
+                {"path": "app/auth.py", "description": "Authentication and authorization", "component": "api"},
+                {"path": "requirements.txt", "description": "Python dependencies", "component": "configuration"},
+                {"path": "Dockerfile", "description": "Container configuration", "component": "deployment"},
+                {"path": ".env.example", "description": "Environment variables example", "component": "configuration"},
+                {"path": "README.md", "description": "API documentation", "component": "documentation"},
+                {"path": "tests/test_api.py", "description": "API endpoint tests", "component": "testing"}
+            ],
+            "cli": [
+                {"path": "src/main.py", "description": "CLI entry point with argument parsing", "component": "core"},
+                {"path": "src/commands.py", "description": "Command implementations", "component": "core"},
+                {"path": "src/utils.py", "description": "Utility functions", "component": "core"},
+                {"path": "src/config.py", "description": "Configuration management", "component": "core"},
+                {"path": "requirements.txt", "description": "Python dependencies", "component": "configuration"},
+                {"path": "setup.py", "description": "Package setup for distribution", "component": "configuration"},
+                {"path": "README.md", "description": "CLI usage documentation", "component": "documentation"},
+                {"path": "tests/test_cli.py", "description": "CLI command tests", "component": "testing"}
+            ],
+            "ml": [
+                {"path": "src/data_loader.py", "description": "Data loading and preprocessing", "component": "data"},
+                {"path": "src/model.py", "description": "Model architecture definition", "component": "model"},
+                {"path": "src/train.py", "description": "Training script with metrics", "component": "training"},
+                {"path": "src/evaluate.py", "description": "Model evaluation and metrics", "component": "evaluation"},
+                {"path": "src/predict.py", "description": "Inference script", "component": "inference"},
+                {"path": "notebooks/exploration.ipynb", "description": "Data exploration notebook", "component": "analysis"},
+                {"path": "requirements.txt", "description": "Python dependencies", "component": "configuration"},
+                {"path": "README.md", "description": "Model documentation and usage", "component": "documentation"},
+                {"path": "tests/test_model.py", "description": "Model unit tests", "component": "testing"}
+            ]
+        }
+        
+        return default_structures.get(project_type, default_structures["web_fullstack"])
+
+    def _create_fallback_plan(self, user_prompt: str, project_type: str) -> dict:
+        """Create a robust fallback plan when LLM fails."""
+        logger.warning("Using fallback plan generation")
+        
+        # Extract potential project name from prompt
+        words = user_prompt.lower().split()[:5]
+        project_name = "-".join(word for word in words if len(word) > 2)[:30] or "project"
+        
+        base_plan = {
+            "project_name": project_name,
+            "project_type": project_type,
+            "components": [
+                {"name": "core", "description": "Main application logic", "technology": "Python/JavaScript"},
+                {"name": "api", "description": "API endpoints", "technology": "FastAPI/Express"},
+                {"name": "database", "description": "Data persistence", "technology": "SQLite/PostgreSQL"}
+            ],
+            "tech_stack": {
+                "frontend": "React" if project_type == "web_fullstack" else None,
+                "backend": "FastAPI" if "python" in user_prompt.lower() else "Express",
+                "database": "PostgreSQL",
+                "other": ["Docker", "Redis"]
+            },
+            "files": self._get_default_files_for_type(project_type),
+            "dependencies": {
+                "python": ["fastapi", "uvicorn", "sqlalchemy", "pydantic", "python-dotenv"],
+                "npm": ["express", "dotenv", "cors"] if "node" in user_prompt.lower() else [],
+                "system": ["docker", "postgresql"]
+            },
+            "architecture_notes": f"Standard {project_type} architecture with separation of concerns",
+            "security_notes": "Implement authentication, validate inputs, use HTTPS, secure database",
+            "deployment_notes": "Use Docker for containerization, deploy to cloud platform"
+        }
+        
+        return base_plan
+
+    def normalize_plan(self, plan: dict) -> dict:
+        """
+        Ensures the plan is properly formatted and complete.
+        
+        Args:
+            plan (dict): The raw plan dictionary.
+            
+        Returns:
+            dict: Normalized plan with consistent structure.
+        """
+        # Ensure all required fields exist
+        plan.setdefault("project_name", "unnamed-project")
+        plan.setdefault("project_type", "general")
+        plan.setdefault("components", [])
+        plan.setdefault("tech_stack", {})
+        plan.setdefault("dependencies", {})
+        plan.setdefault("architecture_notes", "")
+        plan.setdefault("security_notes", "")
+        plan.setdefault("deployment_notes", "")
+        
+        # Normalize files field
+        raw_files = plan.get("files", [])
+        normalized_files = []
+        
+        if isinstance(raw_files, dict):
+            # Convert dict to list format
+            for path, description in raw_files.items():
+                normalized_files.append({
+                    "path": path.strip(),
+                    "description": str(description).strip(),
+                    "component": "unknown"
+                })
+        elif isinstance(raw_files, list):
+            for file_item in raw_files:
+                if isinstance(file_item, dict) and "path" in file_item:
+                    normalized_files.append({
+                        "path": file_item["path"].strip(),
+                        "description": file_item.get("description", "Auto-generated file").strip(),
+                        "component": file_item.get("component", "unknown")
+                    })
+                elif isinstance(file_item, str):
+                    normalized_files.append({
+                        "path": file_item.strip(),
+                        "description": "Auto-generated file",
+                        "component": "unknown"
+                    })
+        
+        plan["files"] = normalized_files
+        
+        # Validate file paths
+        validated_files = []
+        for file_spec in plan["files"]:
+            path = file_spec["path"]
+            # Skip invalid paths
+            if not path or ".." in path or path.startswith("/"):
+                logger.warning(f"Skipping invalid path: {path}")
+                continue
+            # Ensure path uses forward slashes
+            file_spec["path"] = path.replace("\\", "/")
+            validated_files.append(file_spec)
+        
+        plan["files"] = validated_files
+        
+        # Log plan summary
+        logger.info(f"Normalized plan: {plan['project_name']} ({plan['project_type']})")
+        logger.info(f"Components: {[c['name'] for c in plan['components']]}")
+        logger.info(f"Files: {len(plan['files'])}")
+        
+        return plan
