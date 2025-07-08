@@ -62,3 +62,19 @@ def test_blueprint_annotation():
     text = "line1\nline2"
     annotated = annotate_blueprint(text)
     assert "[1] line1" in annotated
+
+
+def test_product_creator_basic(monkeypatch):
+    from agents.product_creator import ProductCreatorAgent
+    agent = ProductCreatorAgent(DummyConfig, MemoryManager())
+    monkeypatch.setattr(agent, "call_llm", lambda p, model="": '{"title": "t"}')
+    spec = agent.generate_plan("t")
+    assert spec["title"] == "t"
+
+
+def test_rl_optimizer_update():
+    from agents.rl_optimizer import RLOptimizer
+    rl = RLOptimizer(DummyConfig, MemoryManager())
+    rl.update("s1", "a1", 1.0, "s2")
+    rl.update("s1", "a1", 1.0, "s2")
+    assert rl.select_action("s1", ["a1", "a2"]) == "a1"

@@ -101,6 +101,8 @@ cd The-Agency
 ./setup.sh    # optional: manually create .venv and pull a base model
 ./install_and_test_ollama.sh  # installs Ollama and verifies the Qwen model
 ./deploy.sh   # updates code, installs deps if needed, then launches The Agency
+python tools/env_check.py     # verify Python and Docker
+python tools/db_setup.py      # initialize MySQL database
 ```
 
 ## 🧠 Configuration
@@ -154,6 +156,9 @@ in the compose file.
 - AI-driven refactoring suggestions for legacy codebases
 - CLI-based project management commands
 - Optional containerization support with Podman
+- Product creation pipeline for e-commerce
+- Reinforcement learning optimizer
+- ComfyUI-style node editor interface
 
 ## 🧠 Philosophy
 "Tell it what you need and it will do the rest."

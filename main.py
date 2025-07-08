@@ -17,6 +17,8 @@ from agents.deployer import DeployerAgent
 from agents.failsafe import FailsafeAgent
 from agents.evolution_logger import EvolutionLogger
 from agents.self_learner import SelfLearningAgent
+from agents.product_creator import ProductCreatorAgent
+from agents.rl_optimizer import RLOptimizer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -79,6 +81,8 @@ def run_agency(prompt: str) -> None:
         failsafe  = FailsafeAgent(Config, memory)
         evo_log   = EvolutionLogger(Config, memory)
         learner   = SelfLearningAgent(Config, memory)
+        producter = ProductCreatorAgent(Config, memory)
+        optimizer = RLOptimizer(Config, memory)
         extra_agents = load_extension_agents(Config, memory)
         if extra_agents:
             logger.info(f"🔄 Loaded {len(extra_agents)} extension agents.")
@@ -143,6 +147,9 @@ def run_agency(prompt: str) -> None:
 
         try:
             deployer.deploy_project(code_files)
+            spec = producter.generate_plan(prompt)
+            producter.upload_product(spec)
+            optimizer.update("pipeline", "deploy", 1.0, "done")
         except Exception as e:
             logger.exception(f"🛑 Error during deployment: {e}")
             return
