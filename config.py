@@ -11,7 +11,9 @@ class Config:
     OLLAMA_API_URL = os.getenv(
         "OLLAMA_API_URL", "http://localhost:11434/api/chat"
     )
-    CODE_MODEL = os.getenv("CODE_MODEL", OLLAMA_MODEL)
+    # Default to OpenAI's GPT-4o for wider compatibility. Override with
+    # `CODE_MODEL=$OLLAMA_MODEL` if a local Ollama model is available.
+    CODE_MODEL = os.getenv("CODE_MODEL", "gpt-4o")
 
     # GPT-4 (for QA Agent)
     GPT4_API_KEY = os.getenv("GPT4_API_KEY", "your-gpt4-api-key")
