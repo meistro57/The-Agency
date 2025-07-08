@@ -4,6 +4,7 @@ import os
 import threading
 import logging
 import sqlite3
+import json
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -58,10 +59,13 @@ class MemoryManager:
 
         if self.conn:
             try:
+                db_value = value
+                if not isinstance(db_value, str):
+                    db_value = json.dumps(db_value)
                 cursor = self.conn.cursor()
                 cursor.execute(
                     "INSERT OR REPLACE INTO memory (keyname, value) VALUES (?, ?)",
-                    (key, value)
+                    (key, db_value)
                 )
                 self.conn.commit()
             except sqlite3.Error as e:
@@ -78,12 +82,19 @@ class MemoryManager:
         if self.conn:
             try:
                 cursor = self.conn.cursor()
-                cursor.execute("SELECT value FROM memory WHERE keyname=?", (key,))
+                cursor.execute(
+                    "SELECT value FROM memory WHERE keyname=?", (key,)
+                )
                 result = cursor.fetchone()
                 if result:
+                    value = result[0]
+                    try:
+                        value = json.loads(value)
+                    except (json.JSONDecodeError, TypeError):
+                        pass
                     with self.lock:
-                        self.cache[key] = result[0]
-                    return result[0]
+                        self.cache[key] = value
+                    return value
             except sqlite3.Error as e:
                 logging.error(f"❌ DB read error for '{key}': {e}")
 
