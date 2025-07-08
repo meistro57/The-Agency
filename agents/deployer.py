@@ -148,7 +148,7 @@ class DeployerAgent(BaseAgent):
                 logger.error(f"❌ Git command failed: {e}")
                 break
 
-    def _run_container(self, image_name: str = "the-agency-app", port: str = "8080") -> None:
+    def _run_container(self, image_name: str = "the-agency-app", port: str = "8090") -> None:
         """
         Runs the Docker container.
 
