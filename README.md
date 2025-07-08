@@ -28,7 +28,9 @@ The-Agency/
 │   └── tools.py           # Misc helpers like run_python_code(), etc.
 ├── interfaces/            # Optional: user input & UX layers
 │   ├── cli_interface.py   # For terminal input/output
-│   └── web_interface.py   # For web-based interaction (Flask/FastAPI UI)
+│   ├── web_dashboard.py   # Flask-based dashboard
+│   ├── node_editor.py     # ComfyUI-style visual editor
+│   └── qt_interface.py    # Qt-based GUI
 ├── projects/              # Folder: auto-generated projects (default path)
 ├── logs/                  # Folder: runtime logs, test results
 ├── requirements.txt       # Python dependencies
@@ -68,6 +70,11 @@ The Agency combines multiple specialized AI agents:
 | `reviewer.py` – **ReviewerAgent** | Provides GPT‑4 based code reviews |
 | `fixer.py` – **FixerAgent** | Applies automated fixes based on test results |
 | `deployer.py` – **DeployerAgent** | Builds Docker images and launches containers |
+| `product_creator.py` – **ProductCreatorAgent** | Creates e-commerce listings |
+| `rl_optimizer.py` – **RLOptimizerAgent** | Tunes agent performance via RL |
+| `failsafe.py` – **FailsafeAgent** | Monitors runtime for critical errors |
+| `self_learner.py` – **SelfLearnerAgent** | Continuously improves agent skills |
+| `evolution_logger.py` – **EvolutionLogger** | Tracks system learning over time |
 | `memory.py` – **MemoryManager** | Persists state using an optional SQLite backend |
 | `task_manager.py` – **TaskManager** | Tracks outstanding and completed tasks |
 

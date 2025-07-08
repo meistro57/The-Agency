@@ -71,7 +71,8 @@ Implements logic like “try again with more detail” or “request clarificati
 
 🧬 Long-Term Memory System
 
-Vector DB (e.g., FAISS, Chroma, or MySQL+LangChain) stores semantically searchable history
+Vector DB (e.g., FAISS or Chroma) stores semantically searchable history while
+SQLite holds metadata
 
 Includes:
 
@@ -279,7 +280,7 @@ Ideal for offline workflows or watched pipelines
 
 🔍 Semantic Search Agent – finds prior outputs in vector DB based on meaning, not keywords
 
-🔃 Sync Agent – mirrors MySQL memory between home and work servers
+🔃 Sync Agent – mirrors SQLite memory between home and work servers
 
 🎯 Mission Agent – keeps agents aligned with a broader system-wide goal ("Create the most powerful T-shirt store in the world", "Explore anti-gravity via simulation", etc.)
 
@@ -347,7 +348,7 @@ Goal: Create and publish a Printify mug using a blueprint idea
 8. ⬆️ Uploader Agent hits the Printify API
 
 
-9. 🧾 Logger saves everything in MySQL & long-term memory
+9. 🧾 Logger saves everything in SQLite & long-term memory
 
 
 
@@ -396,7 +397,7 @@ No burnout. No drama. Just evolution.
 
 1. 🛠️ **Phase 0: Environment Setup**
    - Install Python 3.10+ and Docker
-   - Configure MySQL and vector DB
+   - Configure SQLite and vector DB
    - Pull local models via Ollama
    - Verify with `deploy.sh`
 
