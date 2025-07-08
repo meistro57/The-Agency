@@ -54,6 +54,7 @@ def test_failsafe_detection():
     from agents.failsafe import FailsafeAgent
     fs = FailsafeAgent(DummyConfig, MemoryManager())
     assert not fs.check_text("run rm -rf now")
+    assert not fs.check_text("sudo reboot")
     assert fs.check_text("hello world")
 
 

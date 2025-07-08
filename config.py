@@ -18,6 +18,10 @@ class Config:
     GPT4_MODEL = os.getenv("GPT4_MODEL", "gpt-4o")
     GPT4_API_URL = os.getenv("GPT4_API_URL", "https://api.openai.com/v1/chat/completions")
 
+    # Anthropic (optional)
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+    ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
+
     # SQLite memory system
     # Path to the local SQLite database used for persistent memory.
     SQLITE_PATH = os.getenv("SQLITE_PATH", "the_agency.db")
