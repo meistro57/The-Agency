@@ -81,6 +81,9 @@ All while using:
 - Auto-patch broken scripts from test results
 - Write & run ML pipelines
 - Build deployment pipelines on autopilot
+- Monitor output with a failsafe agent
+- View progress via the Flask dashboard
+- Annotate planning blueprints for clarity
 
 ## 💽 Requirements
 - Python 3.10+
@@ -118,6 +121,8 @@ model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
 python interfaces/cli_interface.py
 # or let the deploy script handle setup and launching
 ./deploy.sh
+# optional: launch the Flask dashboard
+python interfaces/web_dashboard.py
 ```
 
 ## 🐳 Run with Docker Compose

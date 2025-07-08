@@ -21,6 +21,7 @@ class MemoryManager:
         self.cache = {}
         self.lock = threading.Lock()
         self.conn = None
+        self.search_index = {}
 
         if self.config:
             try:
@@ -63,6 +64,7 @@ class MemoryManager:
 
         with self.lock:
             self.cache[key] = value
+            self.search_index[key] = str(value).lower()
 
         if self.conn:
             try:
@@ -107,6 +109,21 @@ class MemoryManager:
                 logging.info("🛑 MemoryManager DB connection closed.")
             except Error as e:
                 logging.error(f"❌ Error closing DB connection: {e}")
+
+    def semantic_search(self, query: str, top_k: int = 5):
+        """Return keys that semantically match the query."""
+        results = []
+        q = query.lower()
+        with self.lock:
+            for key, text in self.search_index.items():
+                score = self._similarity(q, text)
+                results.append((score, key))
+        results.sort(reverse=True)
+        return [k for _, k in results[:top_k]]
+
+    def _similarity(self, a: str, b: str) -> float:
+        from difflib import SequenceMatcher
+        return SequenceMatcher(None, a, b).ratio()
 
     def __del__(self):
         self.close_connection()

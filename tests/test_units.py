@@ -40,3 +40,25 @@ def test_fallback_code():
     py_code = coder._fallback_code("do something", "task.py")
     assert "do something" in py_code
     assert "TODO" in py_code
+
+
+def test_semantic_search():
+    mem = MemoryManager()
+    mem.save("alpha", "make coffee")
+    mem.save("beta", "make tea")
+    results = mem.semantic_search("coffee")
+    assert results and results[0] == "alpha"
+
+
+def test_failsafe_detection():
+    from agents.failsafe import FailsafeAgent
+    fs = FailsafeAgent(DummyConfig, MemoryManager())
+    assert not fs.check_text("run rm -rf now")
+    assert fs.check_text("hello world")
+
+
+def test_blueprint_annotation():
+    from tools.blueprint_annotator import annotate_blueprint
+    text = "line1\nline2"
+    annotated = annotate_blueprint(text)
+    assert "[1] line1" in annotated
