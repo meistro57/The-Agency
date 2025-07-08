@@ -129,10 +129,8 @@ model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
 ## 🧪 Run via Terminal
 ```bash
 python interfaces/cli_interface.py
-# or let the deploy script handle setup and launching
+# or let the deploy script handle setup and launching (opens the dashboard)
 ./deploy.sh
-# optional: launch the Flask dashboard
-python interfaces/web_dashboard.py
 ```
 
 ## 🐳 Run with Docker Compose
