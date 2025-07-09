@@ -53,7 +53,7 @@ The Agency is an autonomous AI system designed to write, test, debug, review, an
 
 The Agency combines multiple specialized AI agents:
 - 🧱 **ArchitectAgent**: Breaks down your idea into structured files and tech stacks
-- ✍️ **CoderAgent**: Writes working code using open-source models (Qwen, Codestral via Ollama)
+- ✍️ **CoderAgent**: Writes working code using GPT-4o or optional open-source models via Ollama
 - 🧪 **TesterAgent**: Executes the code, runs unit tests, captures logs
 - 👁️ **ReviewerAgent**: Uses GPT-4 to provide high-quality QA feedback
 - 🔧 **FixerAgent**: Repairs broken or low-quality code
@@ -66,7 +66,7 @@ The Agency combines multiple specialized AI agents:
 | `main_agent.py` – **MainAgent** | Coordinates the entire workflow |
 | `supervisor.py` – **SupervisorAgent** | Validates outputs for sanity |
 | `architect.py` – **ArchitectAgent** | Breaks down user prompts into a structured software plan |
-| `coder.py` – **CoderAgent** | Generates source code from the plan |
+| `coder.py` – **CoderAgent** | Generates source code from the plan using GPT-4o or optional Ollama models |
 | `tester.py` – **TesterAgent** | Runs unit tests and captures logs |
 | `reviewer.py` – **ReviewerAgent** | Provides GPT‑4 based code reviews |
 | `fixer.py` – **FixerAgent** | Applies automated fixes based on test results |
@@ -83,8 +83,8 @@ The Agency combines multiple specialized AI agents:
 All while using:
 - 🧠 SQLite-based persistent memory
 - 🗂️ A modular architecture for future agent extensions
-- 🛡️ Open-source LLMs (via Ollama) for code generation with GPT-4 used for critical review.
-  Agents default to these local models but can target OpenAI by setting `CODE_MODEL`.
+- 🛡️ OpenAI GPT-4o for code generation with optional Ollama support.
+  Agents use GPT-4o by default but can target local models by setting `CODE_MODEL`.
 
 ## 🧰 Use Cases
 - Generate full-stack web apps from a description
@@ -119,15 +119,16 @@ Edit `config.py` or use environment variables:
 ```bash
 export GPT4_API_KEY=your-key
 export OLLAMA_MODEL=qwen:latest
-export CODE_MODEL=$OLLAMA_MODEL  # defaults to Ollama model
+export CODE_MODEL=gpt-4o  # default model used by the system
 export SQLITE_PATH=the_agency.db
 export MAX_PROJECT_DIR_SIZE_MB=100
 export ANTHROPIC_API_KEY=your-claude-key
 ```
 
 ### Using OpenAI
-The system connects to Ollama by default. To run the CoderAgent with an OpenAI
-model instead, set `CODE_MODEL` to a chat model like `gpt-4o`.
+OpenAI's GPT-4o is used by default for code generation. To use a local
+Ollama model instead, set `CODE_MODEL=$OLLAMA_MODEL` after installing and
+running Ollama.
 
 ### Using Anthropic
 Set `ANTHROPIC_API_KEY` and choose a Claude model (e.g. `claude-3-sonnet-20240229`) to route requests through Anthropic's API.
