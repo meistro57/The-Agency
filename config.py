@@ -38,3 +38,7 @@ class Config:
 
     # Flags
     USE_GPT4_FOR_QA = True
+
+    # GitHub integration
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+    GITHUB_API_URL = os.getenv("GITHUB_API_URL", "https://api.github.com")
